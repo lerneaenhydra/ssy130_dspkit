@@ -223,8 +223,8 @@ rate requirements. */
 " | |_| \\__ \\ |_) | | . \\| | |_  \n"				\
 " |____/|___/ .__/  |_|\\_\\_|\\__| \n"				\
 "           |_|"									\
-"\n\nCompiled on " __DATE__ " at " __TIME__" with;"	\
-"\nSystem setup;"																		\
+"\n\nCompiled on " __DATE__ " at " __TIME__			\
+"\n\nSystem setup;"																		\
 "\n\tSample rate           "xstr(AUDIO_SAMPLE_RATE)" Hz"								\
 "\n\tBlocksize;            "xstr(AUDIO_BLOCKSIZE)" samples"								\
 "\n\tMic. lowpass  cutoff; "xstr(MIC_LP_FC)" Hz"										\
