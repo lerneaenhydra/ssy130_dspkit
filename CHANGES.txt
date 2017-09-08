@@ -1,0 +1,21 @@
+Backend;
+	1.3.1 - Added ASCII-plot function for visualizing data directly on the device
+	1.3.0 - Added multiple waveforms to select from
+		  - Unified source code style in sources.c
+		  - Altered system mode selection style, reduced risk for inadvertently selecting an invalid operation mode
+	1.2.0 - Updated block subsystem to write to a target buffer instead of maintaining local copies.
+		  - Various changes to reduce memory usage applied.
+		  - Added envelope detector and queued buffer blocks in the misc.h/.c files, primarily intended to be used in the OFDM lab. 
+	1.1.0 Added support for bi-directional USART communication. Incoming characters are now added to a FIFO buffer and can be handled on an application basis. This can be as simple as reading the incoming characters and using a large switch statment to handle the various effects that each character should have.
+	1.0.0 Initial release
+	
+Examples;
+	1.1.3 Radar example rewritten for clarity
+	1.1.2 Updated examples to use backend version 1.3.0
+	1.1.1 Updated examples to use backend version 1.2.0
+	1.1.0 Updated example 2 to use the new bi-directional USART communications link to select between the different effects.
+	1.0.0 Initial release
+	
+Lab;
+	1.0.1 Initial release
+	0.0.0 Lab skeleton code is not yet implemented
