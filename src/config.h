@@ -191,10 +191,6 @@ rate requirements. */
  *
  *****************************************************************************/
 
-#define BACKEND_VERSION				1.3.1
-#define EXAMPLES_VERSION			1.1.4
-#define LAB_VERSION					1.0.1
-
 /** @brief Number of test loops to apply to each function to test for the OFDM-functions */
 #define UNITTEST_PASSES_OFDM		(150)
 
@@ -228,9 +224,6 @@ rate requirements. */
 " |____/|___/ .__/  |_|\\_\\_|\\__| \n"				\
 "           |_|"									\
 "\n\nCompiled on " __DATE__ " at " __TIME__" with;"	\
-"\n\tBackend version "xstr(BACKEND_VERSION)												\
-"\n\tExample version "xstr(EXAMPLES_VERSION)											\
-"\n\tLab version "xstr(LAB_VERSION)														\
 "\nSystem setup;"																		\
 "\n\tSample rate           "xstr(AUDIO_SAMPLE_RATE)" Hz"								\
 "\n\tBlocksize;            "xstr(AUDIO_BLOCKSIZE)" samples"								\
