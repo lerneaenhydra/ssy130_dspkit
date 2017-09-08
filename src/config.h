@@ -82,7 +82,7 @@
 /** @brief Define this directive to include the assignment solutions. The
  *student code-base does not have the needed file and will generate a compiler
  * error if this directive is included. */
-#define MASTER_MODE
+//#define MASTER_MODE
 
 /** @brief Global audio sample rate [Hz]
  * Due to hardware limitations, the sample-rate must be evenly divisible by
