@@ -59,7 +59,7 @@
 //#define SYSMODE_LMS
 //#define SYSMODE_OFDM
 //#define SYSMODE_RADAR
-//define SYSMODE_FFT
+//#define SYSMODE_FFT
 
 #if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
