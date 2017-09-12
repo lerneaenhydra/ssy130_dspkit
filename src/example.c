@@ -219,6 +219,7 @@ void example_test2(void){
 	//Allocate space for the microphone and waveform samples.
 	float micdata[AUDIO_BLOCKSIZE];
 	float wavedata[AUDIO_BLOCKSIZE];
+        
 	//Write AUDIO_BLOCKSIZE samples to the microphone and waveform buffer
 	blocks_sources_microphone(micdata);
 	blocks_sources_waveform(wavedata);
