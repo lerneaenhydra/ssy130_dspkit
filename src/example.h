@@ -42,7 +42,10 @@ void example_test4_btnpress(void);	//!<- Function to call to trigger a transmiss
 //#define RADAR_F_STOP 		(AUDIO_SAMPLE_RATE/4)									//Chirp final frequency [Hz]
 
 
-#define RADAR_RX_SIZE  		(2 * AUDIO_BLOCKSIZE + CEILING(RADAR_L_MAX * AUDIO_SAMPLE_RATE, RADAR_V_PROP) + RADAR_CHIRP_SIZE)	//Length of buffer to store recieved samples in [samples]
+//Length of buffer to store recieved samples in [samples]
+//Choose length that is at least long enough for buffer and channel
+//propogation delay, then round up size to nearest multiple of AUDIO_BLOCKSIZE.
+#define RADAR_RX_SIZE  		(2 * AUDIO_BLOCKSIZE + AUDIO_BLOCKSIZE * CEILING(CEILING(RADAR_L_MAX * AUDIO_SAMPLE_RATE, RADAR_V_PROP), AUDIO_BLOCKSIZE) + RADAR_CHIRP_SIZE)
 #define RADAR_DELAY_s		(1)						//Time to wait between successive radar chirps [s]
 void example_radar_init(void);
 void example_radar(void);
