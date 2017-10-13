@@ -133,7 +133,7 @@ bool main_uart_callback(const char key){
 			{
 				float vol = WavePlayerGetVolume();
 				vol *= VOLUME_SCALING;
-				vol = fsat(vol, 0, 1);
+				vol = SAT(vol, 0, 1);
 				WavePlayerSetVolume(vol);
 			}
 			break;
@@ -141,7 +141,7 @@ bool main_uart_callback(const char key){
 			{
 				float vol = WavePlayerGetVolume();
 				vol /= VOLUME_SCALING;
-				vol = fsat(vol, 0, 1);
+				vol = SAT(vol, 0, 1);
 				WavePlayerSetVolume(vol);
 			}
 			break;

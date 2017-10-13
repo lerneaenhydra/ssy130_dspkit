@@ -6,6 +6,10 @@
 #define RAND_R_INC	12345L
 #define RAND_SHIFT	16
 
+uint_fast32_t util_get_seed(void){
+	return board_get_randseed();
+}
+
 /** @brief Simple (and relatively crude) LCG random number generator. */
 uint_fast16_t util_rand_r(uint_fast32_t * const seed){
 	uint_fast16_t retval = 0;

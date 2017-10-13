@@ -167,7 +167,7 @@ void unittest_run(void){
 	int i;
 	float max_eps = 0;
 	
-	printf("Testing ofdm_demodulate(...)\n\n");
+	printf("\nTesting 'ofdm_demodulate(...)'\n");
 	for(i = 1; i <= UNITTEST_PASSES_OFDM; i++){
 		float f = randuf(0, 1e3);
 		float src[i], re_ref[i], im_ref[i], re_test[i], im_test[i];
@@ -181,7 +181,7 @@ void unittest_run(void){
 	}
 	check_eps(max_eps);
 	
-	printf("Testing 'cnvt_re_im_2_cmplx(...)'\n");
+	printf("\nTesting 'cnvt_re_im_2_cmplx(...)'\n");
 	max_eps = 0;
 	for(i = 1; i <= UNITTEST_PASSES_OFDM; i++){
 		float re[i], im[i], c_ref[2*i], c_test[2*i];
@@ -195,7 +195,7 @@ void unittest_run(void){
 	check_eps(max_eps);
 	
 	max_eps = 0;
-	printf("Testing 'ofdm_conj_equalize(...)'\n");
+	printf("\nTesting 'ofdm_conj_equalize(...)'\n");
 	for(i = 1; i <= UNITTEST_PASSES_OFDM; i++){
 		float prxMes[2*i], prxPilot[2*i], ptxPilot[2*i], pEqualized_ref[2*i], pEqualized_test[2*i], hhat_conj_ref[2*i], hhat_conj_test[2*i];
 		seed_randv(prxMes, NUMEL(prxMes), -1, 1);

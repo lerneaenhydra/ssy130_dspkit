@@ -8,17 +8,6 @@
 
 #define R_RAND_MAX	0xFFFF
 
-/** @brief Saturates a float variable to some limits min and max */
-static inline float fsat(const float val, const float min, const float max){
-	if(val < min){
-		return min;
-	}else if(val > max){
-		return max;
-	}else{
-		return val;
-	}
-}
-
 /** @brief Prints the values in a vector of floats, formatted with MATLAB syntax */
 void print_vector_f(char * name, float * vals, int_fast32_t len);
 
@@ -37,6 +26,9 @@ float vector_mean(float * vals, int_fast32_t len);
 
 /** @brief Prints an error message and enters an infinite loop blinking the board led's */
 void halt_error(char * errmsg);
+
+/** @brief Gets the random seed generated at startup from psuedo-random hardware */
+uint_fast32_t util_get_seed(void);
 
 /** @brief Outputs a random integer in the range [0, R_RAND_MAX], given a random seed location */
 uint_fast16_t util_rand_r(uint_fast32_t * const seed);

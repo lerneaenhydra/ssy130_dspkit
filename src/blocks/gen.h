@@ -21,4 +21,10 @@ void blocks_gen_sin(float frequency, float phase, float * dest, int_fast32_t len
  * @param len The number of elements in dest */
 void blocks_gen_cos(float frequency, float phase, float * dest, int_fast32_t len);
 
+/** @brief Generates a random (human-readable) string with up to strlen non-null elements
+ * @param str Pointer to char array to write result to
+ * @param strlen Length of char array
+ * @param seed Pointer to RNG seed */
+void blocks_gen_str(char * str, int_fast32_t strlen, uint_fast32_t * seed);
+
 #endif /* SRC_BLOCKS_GEN_H_ */

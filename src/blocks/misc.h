@@ -69,6 +69,12 @@ bool misc_envelope_query_complete(struct misc_envelope_s * const s);
 /** @brief Resets the detection flag in an envelope structure s and allows detection of a new signal */
 void misc_envelope_ack_complete(struct misc_envelope_s * const s);
 
+/** @brief Adds data inp to a linear buffer buf, removing the oldest inp elements.
+ * Note that data is stored in an order such that buf[0] will contain the oldest
+ * data, while buf[inplen-1] will contain the newest. This implies that buf will
+ * retain the order of data in inp. */
+void misc_inpbuf_add(float * const buf, const int_fast32_t buflen, float * const inp, const int_fast32_t inplen);
+
 /** @brief Memory element for queued buffer.
  * The queued buffer allows for easily outputting a block of samples that is
  * not equal to AUDIO_BLOCKSIZE. */

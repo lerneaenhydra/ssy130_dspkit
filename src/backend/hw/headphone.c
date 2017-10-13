@@ -145,7 +145,7 @@ void WavePlayBack(void){
 }
 
 void WavePlayerSetVolume(float volume){
-	volume_gain = fsat(volume, 0, 1);
+	volume_gain = SAT(volume, 0, 1);
 }
 
 float WavePlayerGetVolume(void){
@@ -213,8 +213,8 @@ static void fill_buffer (int16_t *buffer){
 	int i = 0;
 	while (i < AUDIO_BLOCKSIZE){
 		//Note that it is critical that the left data is written first, followed by the right data, to ensure the channels are not reversed
-		const float right_n = fsat((*(WavePlayBackRightData + i)) * volume_gain, -1.0f, 1.0f) * mute_state;
-		const float left_n = fsat((*(WavePlayBackLeftData + i)) * volume_gain, -1.0f, 1.0f) * mute_state;
+		const float right_n = SAT((*(WavePlayBackRightData + i)) * volume_gain, -1.0f, 1.0f) * mute_state;
+		const float left_n = SAT((*(WavePlayBackLeftData + i)) * volume_gain, -1.0f, 1.0f) * mute_state;
 
 		*buffer++ = FtoI16(left_n);
 		*buffer++ = FtoI16(right_n);

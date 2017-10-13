@@ -95,6 +95,38 @@ void misc_envelope_ack_complete(struct misc_envelope_s * const s){
 	s->trigd = false;
 }
 
+void misc_inpbuf_add(float * const buf, const int_fast32_t buflen, float * const inp, const int_fast32_t inplen){
+	if(inplen >= buflen){
+		//Input length at least as long as buffer, simply fill entire buffer with input
+		//(though there's no real reason to use this utility function)
+		arm_copy_f32(inp, buf, buflen);
+	}else{
+		//Buffer will contain at least one old sample
+		
+		//First handle samples of buf that are not an even multiple of inplen
+		const int_fast32_t rem = buflen % inplen;
+		if(rem != 0){
+			const size_t start = rem + inplen - rem;
+			const size_t end = 0;
+			//printf("REM: Copying %d bytes starting from index %d to index %d. Total buffer length %d.\n", rem, start, end, buflen);
+			arm_copy_f32(&buf[start], &buf[end], rem);	
+		}
+		
+		//Now handle all remaining samples. Guaranteed to be a multiple of inplen
+		int_fast32_t i;
+		for(i = rem + inplen; i <= buflen - inplen; i+=inplen){
+			const size_t start = i;
+			const size_t end = i - inplen;
+			//printf("STD: Copying %d bytes starting from index %d to index %d. Total buffer length %d.\n", inplen, start, end, buflen);
+			arm_copy_f32(&buf[start], &buf[end], inplen);
+		}
+		
+		//Now we can simply copy inp to the start of buf
+		const size_t start = (buflen - 1) - (inplen - 1);
+		arm_copy_f32(inp, &buf[start], inplen);
+		//printf("NEW: Adding %d bytes starting from index %d. Total buffer length %d.\n", inplen, start, buflen);
+	}
+}
 
 void misc_queuedbuf_init(struct misc_queuedbuf_s * const s, float * const buf, const int_fast32_t len){
 	s->curr_idx = 0;
@@ -108,6 +140,8 @@ void misc_queuedbuf_process(struct misc_queuedbuf_s * const s, float * out, cons
 	const int_fast32_t queued_elems_left = s->len - s->curr_idx;
 	int_fast32_t queued_elems_copy = MIN(queued_elems_left, outlen);
 	arm_copy_f32(&s->data[s->curr_idx], out, queued_elems_copy);
+	
+	//printf("%d elems left. %d elems to copy\n", queued_elems_left, queued_elems_copy);
 
 	/* We've now copied up to outlen elements from the queued buffer, update
 	 * the number of remaining elements and possibly pad with padval. */
@@ -115,6 +149,8 @@ void misc_queuedbuf_process(struct misc_queuedbuf_s * const s, float * out, cons
 	s->curr_idx += queued_elems_copy;
 
 	const int_fast32_t pad_elems = outlen - queued_elems_copy;
+	
+	//printf("%d curr idx, %d elems to pad\n\n", s->curr_idx, pad_elems);
 
 	if(pad_elems > 0){
 		arm_fill_f32(padval, &out[queued_elems_left], pad_elems);

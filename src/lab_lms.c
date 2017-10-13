@@ -202,7 +202,7 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	
 #ifdef MASTER_MODE
 	//If using the full code-base (including the solution) directly solve the LMS update
-	#include "../secret_sauce.h"
+	#include "../../secret_sauce.h"
 	DO_LMS();
 #else
 	//TODO: Implement your own LMS update here!

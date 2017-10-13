@@ -80,8 +80,8 @@
 #define AUDIO_WAVEFORM_WAVEFORM1
 
 /** @brief Define this directive to include the assignment solutions. The
- *student code-base does not have the needed file and will generate a compiler
- * error if this directive is included. */
+ * student code-base does not have the needed file and will generate a compiler
+ * error if this directive is set. */
 //#define MASTER_MODE
 
 /** @brief Global audio sample rate [Hz]

@@ -18,11 +18,18 @@
 #include "backend/printfn/printfn.h"
 #include "arm_math.h"
 #include "arm_const_structs.h"
+#include "blocks/gen.h"
+#include "backend/asciiplot.h"
 
 #if defined(SYSMODE_OFDM)
 
-char message[LAB_OFDM_CHAR_MESSAGE_SIZE] = "Hello World!AAA";
-char pilot_message[LAB_OFDM_CHAR_MESSAGE_SIZE] = "Pilot Signal!";
+#define M_ONE_OVER_SQRT_2 	(0.70710678118f)
+
+#define LAB_OFDM_AMP_SCALE 	(6)
+
+char message[LAB_OFDM_CHAR_MESSAGE_SIZE];
+char rec_message[LAB_OFDM_CHAR_MESSAGE_SIZE];
+char pilot_message[LAB_OFDM_CHAR_MESSAGE_SIZE];
 float ofdm_buffer[2*LAB_OFDM_BLOCKSIZE];
 float ofdm_pilot_message[2*LAB_OFDM_BLOCKSIZE];
 float bb_transmit_buffer_pilot[2*(LAB_OFDM_BLOCK_W_CP_SIZE)];
@@ -36,7 +43,7 @@ float ofdm_rx_pilot[2*LAB_OFDM_BLOCKSIZE];
 float ofdm_received_message[2*LAB_OFDM_BLOCKSIZE];
 float hhat_conj[2*LAB_OFDM_BLOCKSIZE];
 float soft_symb[2*LAB_OFDM_BLOCKSIZE];
-char rec_message[LAB_OFDM_CHAR_MESSAGE_SIZE];
+uint_fast32_t rng_seed;
 
 // LP filter with cutoff frequency = fs/LAB_OFDM_UPSAMPLE_RATE/2
 // In Matlab designed with command
@@ -77,12 +84,24 @@ float br_tx[LAB_OFDM_TX_FRAME_SIZE], bi_tx[LAB_OFDM_TX_FRAME_SIZE];
 float br_bb[LAB_OFDM_BB_FRAME_SIZE], bi_bb[LAB_OFDM_BB_FRAME_SIZE];
 float pTmp[2*LAB_OFDM_BLOCKSIZE];
 
-// volume for transmitted signal
-float volume = 4;
+/** @brief Replaces non-prinable characters in a string with a '_' character. */
+static void clean_str(char * inpmsg, char * outmsg, size_t outmsg_len){
+	size_t i;
+	for(i = 0; i < outmsg_len - 1; i++){
+		if((inpmsg[i] < ' ') || (inpmsg[i] > '~')){
+			outmsg[i] = '_';
+		}else{
+			outmsg[i] = inpmsg[i];
+		}
+	}
+	outmsg[outmsg_len - 1] = '\0';
+}
+	
 
 void lab_ofdm_process_init(void){
 	arm_fir_decimate_init_f32 (&S_decim, LAB_OFDM_FILTER_LENGTH, LAB_OFDM_UPSAMPLE_RATE, lp_filter, pState_decim, LAB_OFDM_TX_FRAME_SIZE);
 	arm_fir_interpolate_init_f32 (&S_intp, LAB_OFDM_UPSAMPLE_RATE, LAB_OFDM_FILTER_LENGTH, lp_filter, pState_intp, LAB_OFDM_BB_FRAME_SIZE);
+	rng_seed = util_get_seed();
 	printf("OFDM initialized!\n");
 }
 
@@ -91,7 +110,7 @@ void lab_ofdm_process_qpsk_encode(char * pMessage, float * pDst, int Mlen){
 	* Encode the character string in pMessage[] of length Mlen
 	* as a complex signal pDst[] with
 	* QPSK encoding
-	* Note that Each character requires 8 bits = 4 QPS symbols = 4 complex
+	* Note that Each character requires 8 bits = 4 QPSK symbols = 4 complex
 	* numbers = 8 places in the pDest array
 	* Hence pDest must have a length of at least 8 * Mlen
 	* Even bit numbers correspond to real part odd bit numbers correspond to imginary part
@@ -102,9 +121,9 @@ void lab_ofdm_process_qpsk_encode(char * pMessage, float * pDst, int Mlen){
 		x = pMessage[i];
 		for (ii=0; ii<8; ii++){
 			if (x & 0x01){ // test the LSB value in character
-				pDst[idx++] = 1;
+				pDst[idx++] = 0.75;
 			} else {
-				pDst[idx++] = -1;
+				pDst[idx++] = -0.75;
 			}
 			x = x >> 1; // shift right to make next bit LSB
 		}
@@ -175,7 +194,7 @@ void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int lengt
 	* with modulation center frequency f and the signal length is length
 	*/
 	#ifdef MASTER_MODE
-#include "../secret_sauce.h"
+#include "../../secret_sauce.h"
 	DO_OFDM_DEMODULATE();
 #else
 	/* Add code from here... */
@@ -203,7 +222,7 @@ void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 	* etc.
 	*/
 #ifdef MASTER_MODE
-#include "../secret_sauce.h"
+#include "../../secret_sauce.h"
 		DO_OFDM_RE_IM_2_CMPLX();
 #else
 		/* Add code from here... */
@@ -253,7 +272,7 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	*   hhat_conj[] -  complex vector with estimated conjugated channel gain
 	*/
 #ifdef MASTER_MODE
-#include "../secret_sauce.h"
+#include "../../secret_sauce.h"
 	DO_OFDM_CONJ_EQUALIZE();
 #else
 	/* Estimate the conjugate of channel by multiplying the conjugate of 
@@ -287,10 +306,52 @@ void ofdm_soft_symb(float * prxMes, float * hhat_conj, float * soft_symb, int le
 	}
 }
 
-void lab_ofdm_process_tx(float * real_tx){
+void lab_ofdm_process_tx(float * real_tx, bool randpilot_enbl){
 	/* Create one frame including an ofdm pilot and ofdm message message block */
+	/* Generate pilot and message strings */
+	char rawmessage[NUMEL(message)+1];
+	char rawpilot[NUMEL(pilot_message)+1];
+	if(randpilot_enbl){
+		blocks_gen_str(rawpilot, NUMEL(rawpilot), &rng_seed);
+	}else{
+		size_t i;
+		for(i = 0; i < NUMEL(rawpilot); i++){
+			rawpilot[i] = 'A' + i;
+		}
+	}
+	blocks_gen_str(rawmessage, NUMEL(rawmessage), &rng_seed);
+	
+	/* Copy generated strings to non-null-padded pilot/message strings */
+	size_t i;
+	for(i = 0; i < NUMEL(message); i++){
+		message[i] = rawmessage[i];
+	}
+	for(i = 0; i < NUMEL(pilot_message); i++){
+		pilot_message[i] = rawpilot[i];
+	}
+	
 	/* Encode pilot string to qpsk sybols */
-	lab_ofdm_process_qpsk_encode( pilot_message , ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
+	lab_ofdm_process_qpsk_encode(pilot_message, ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
+	
+	/* Plot constellation diagram */
+	float axis[4] = {-2, 2, -2, 2};
+	float plot_re[NUMEL(ofdm_buffer)/2];
+	float plot_im[NUMEL(ofdm_buffer)/2];
+	cnvt_cmplx_2_re_im(ofdm_buffer, plot_re, plot_im, NUMEL(plot_re));
+	struct asciiplot_s plot = {
+		.cols = 48,
+		.rows = 32,
+		.xdata = plot_re,
+		.ydata = plot_im,
+		.data_len = NUMEL(plot_re),
+		.xlabel = "re",
+		.ylabel = "im",
+		.title = "Transmitted message constellation diagram",
+		.axis = axis,
+		.label_prec = 3,
+	};
+	asciiplot_draw(&plot);
+	
 	/* perform IFFT on ofdm_buffer */
 	BUILD_BUG_ON(LAB_OFDM_BLOCKSIZE != 64);
 	arm_cfft_f32(&arm_cfft_sR_f32_len64, ofdm_buffer, LAB_OFDM_IFFT_FLAG, LAB_OFDM_DO_BITREVERSE);
@@ -312,9 +373,16 @@ void lab_ofdm_process_tx(float * real_tx){
 	arm_fir_interpolate_f32 (&S_intp, bi_bb , bi_tx, LAB_OFDM_BB_FRAME_SIZE);
 	/* Modulate */
 	ofdm_modulate(br_tx, bi_tx, real_tx, LAB_OFDM_CENTER_FREQUENCY/AUDIO_SAMPLE_RATE, LAB_OFDM_TX_FRAME_SIZE);
-	/* Change volume on tranmitted signal */
-	arm_scale_f32(real_tx, volume, real_tx, LAB_OFDM_TX_FRAME_SIZE);
+	/* Scale amplitude of tranmitted signal */
+	arm_scale_f32(real_tx, LAB_OFDM_AMP_SCALE, real_tx, LAB_OFDM_TX_FRAME_SIZE);
 	/* buffer real_tx now ready for transmission */
+	char tx_message_safe[NUMEL(message)+1];
+	char pilot_message_safe[NUMEL(pilot_message)+1];
+	clean_str(message, tx_message_safe, NUMEL(tx_message_safe));
+	clean_str(pilot_message, pilot_message_safe, NUMEL(pilot_message_safe));
+	
+	printf("Pilot message:  '%s'(non-printable characters replaced by '_')\n", pilot_message_safe);
+	printf("Transmitted:    '%s'\n", tx_message_safe);	
 }
 
 void lab_ofdm_process_rx(float * real_rx_buffer){
@@ -341,39 +409,55 @@ void lab_ofdm_process_rx(float * real_rx_buffer){
 	ofdm_conj_equalize(ofdm_rx_message, ofdm_rx_pilot, ofdm_pilot_message, ofdm_received_message, hhat_conj, LAB_OFDM_BLOCKSIZE);
 	
 	/* Decode qpsk */
-	lab_ofdm_process_qpsk_decode(ofdm_received_message,  rec_message,  LAB_OFDM_CHAR_MESSAGE_SIZE);
+	lab_ofdm_process_qpsk_decode(ofdm_received_message, rec_message, LAB_OFDM_CHAR_MESSAGE_SIZE);
 	
 	/* Determine SNR here by also calculating the "soft symbols", i.e. by dividing 
 	 * with the channel estimate. */
 	ofdm_soft_symb(ofdm_rx_message, hhat_conj, soft_symb, LAB_OFDM_BLOCKSIZE);
 	
 	/* Here we calulate the "correct" symbols in the message */
-	lab_ofdm_process_qpsk_encode( message , ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
+	lab_ofdm_process_qpsk_encode(message, ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
 	
 	/* Determine RMSE for the symbols */
 	float tmp[2*LAB_OFDM_BLOCKSIZE];
 	float err_norm=0;
-	arm_sub_f32( soft_symb, ofdm_buffer, tmp, 2*LAB_OFDM_BLOCKSIZE);
+	arm_sub_f32(soft_symb, ofdm_buffer, tmp, 2*LAB_OFDM_BLOCKSIZE);
 	arm_cmplx_mag_squared_f32(tmp, tmp, LAB_OFDM_BLOCKSIZE );
 	for ( i=0; i< LAB_OFDM_BLOCKSIZE; i++){
 		err_norm += tmp[i];
 	}
 	err_norm = sqrtf(err_norm/LAB_OFDM_BLOCKSIZE);
 	
-	/* Sanitize recieved character array to only contain printable characters.
-	 * Replace other characters by a '_' character and add a null termination */
-	char rec_message_safe[NUMEL(rec_message)+1];
-	for(i = 0; i < NUMEL(rec_message); i++){
-		if((rec_message[i] < ' ') || (rec_message[i] > '~')){
-			rec_message_safe[i] = '_';
-		}else{
-			rec_message_safe[i] = rec_message[i];
-		}
-	}
-	rec_message_safe[NUMEL(rec_message) - 1] = '\0';
+	/* Plot constellation diagram */
+	float axis[4] = {-2, 2, -2, 2};
+	float plot_re[NUMEL(soft_symb)/2];
+	float plot_im[NUMEL(soft_symb)/2];
+	cnvt_cmplx_2_re_im(soft_symb, plot_re, plot_im, NUMEL(plot_re));
+	struct asciiplot_s plot = {
+		.cols = 48,
+		.rows = 32,
+		.xdata = plot_re,
+		.ydata = plot_im,
+		.data_len = NUMEL(plot_re),
+		.xlabel = "re",
+		.ylabel = "im",
+		.title = "Received message constellation diagram",
+		.axis = axis,
+		.label_prec = 3,
+	};
+	asciiplot_draw(&plot);
 	
-	printf("Transmitted String: '%s'\n", message);
-	printf("Received String:    '%s' (invalid characters replaced by '_')\n", rec_message_safe);
+	/* Sanitize recieved character array to only contain printable characters. */
+	char rec_message_safe[NUMEL(rec_message)+1];
+	char pilot_message_safe[NUMEL(pilot_message)+1];
+	char tx_message_safe[NUMEL(message)+1];
+	clean_str(rec_message, rec_message_safe, NUMEL(rec_message_safe));
+	clean_str(pilot_message, pilot_message_safe, NUMEL(pilot_message_safe));
+	clean_str(message, tx_message_safe, NUMEL(tx_message_safe));
+	
+	printf("Assumed pilot:  '%s'(non-printable characters replaced by '_')\n", pilot_message_safe);
+	printf("Assumed message:'%s'\n", tx_message_safe);
+	printf("Received:       '%s'\n", rec_message_safe);
 	printf("QPSK symbol RMSE %f\n\n", err_norm);
 }
 

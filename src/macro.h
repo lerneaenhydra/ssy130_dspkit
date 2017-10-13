@@ -64,11 +64,19 @@
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
 
+/** @brief Safely get the absolute value of a value, evaluating the value once only */
+#define ABS(x) 	\
+	({ __typeof__ (x) _x = (x); \
+		_x > 0 ? _x : -_x; })
+
 /** @brief Safely get the minimum of two values, evaluating a and b once only */
 #define MIN(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
+	 
+/** @brief Saturate some numerical value to lie in range min <= x <= max */
+#define SAT(x,min,max)	MIN(MAX(x, min), max)
 
 /** @brief Returns ceil(num/den), i.e. the smallest integer N that satisfies N >= num/den */
 #define CEILING(num,den) (((num) + (den) - 1) / (den))
