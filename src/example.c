@@ -617,11 +617,11 @@ static void example_radar_helptext(void){
 	printf("\nPress '%c' to set the current channel length to 0 or '%c' to remove the offset.\n"
 	"Press ' ' (space) to pause/resume transmission.\n"
 	"Press '%c' to toggle displaying the selected plot.\n"
-	"Press w to reduce the plot range based on the current centerpoint.\n"
-	"Press d to increase the plot range based on the current centerpoint.\n"
-	"Press a to move the plot range to the left.\n"
-	"Press s to move the plot range to the right.\n"
-	"Press %c, %c, or %c to set the output content to the correlation, sent, or received signals respectively. (Also resetting plot extents).\n"
+	"Press 'w' to reduce the plot range based on the current centerpoint.\n"
+	"Press 'd' to increase the plot range based on the current centerpoint.\n"
+	"Press 'a' to move the plot range to the left.\n"
+	"Press 's' to move the plot range to the right.\n"
+	"Press '%c', '%c', or '%c' to set the output content to the correlation, sent, or received signals respectively. (Also resetting plot extents).\n"
 	"Due to the large length of these vectors, they unfortunately cannot reasonably be output in a matlab-compatible form.\n\n",
 	REL_CHAR, RESET_CHAR, PLOT_TOGGLE_CHAR, WAVEFORM_CORR, WAVEFORM_CHIRP, WAVEFORM_RX);
 }
