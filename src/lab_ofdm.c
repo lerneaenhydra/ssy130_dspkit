@@ -115,7 +115,7 @@ struct lab_ofdm_detect_setup_s lab_ofdm_detect_setup = {
 	.m_pairs = 		LAB_OFDM_NUM_MESSAGE,
 	.m_samples = 	LAB_OFDM_BLOCK_W_CP_SIZE * LAB_OFDM_UPSAMPLE_RATE,
 	.n_window = 	LAB_OFDM_DETECTOR_WINDOW_BB_SAMPLES,
-	.thr = 			1.0f/(LAB_OFDM_THRS_SCALE*LAB_OFDM_THRS_SCALE),
+	.thr = 			1.0f/(LAB_OFDM_THRS_SCALE*LAB_OFDM_THRS_SCALE*LAB_OFDM_THRS_SCALE*LAB_OFDM_THRS_SCALE),
 	.n_thr = 		LAB_OFDM_N_THRS,
 	.dec_rate = 	LAB_OFDM_DETECTOR_DEC,
 };
