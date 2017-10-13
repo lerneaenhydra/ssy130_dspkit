@@ -121,9 +121,9 @@ void lab_ofdm_process_qpsk_encode(char * pMessage, float * pDst, int Mlen){
 		x = pMessage[i];
 		for (ii=0; ii<8; ii++){
 			if (x & 0x01){ // test the LSB value in character
-				pDst[idx++] = 0.75;
+				pDst[idx++] = M_ONE_OVER_SQRT_2;
 			} else {
-				pDst[idx++] = -0.75;
+				pDst[idx++] = -M_ONE_OVER_SQRT_2;
 			}
 			x = x >> 1; // shift right to make next bit LSB
 		}
@@ -191,13 +191,13 @@ void ofdm_modulate(float * pRe, float * pIm, float* pDst, float f , int length){
 void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int length ){
 	/*
 	* Demodulate a real signal (pSrc) into a complex signal (pRe and pPim)
-	* with modulation center frequency f and the signal length is length
+	* with modulation center frequency f and length elements
 	*/
 	#ifdef MASTER_MODE
 #include "../../secret_sauce.h"
 	DO_OFDM_DEMODULATE();
 #else
-	/* Add code from here... */
+	/* TODO: Add code from here... */
 	
 	/* ...to here */
 #endif
@@ -225,7 +225,7 @@ void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 #include "../../secret_sauce.h"
 		DO_OFDM_RE_IM_2_CMPLX();
 #else
-		/* Add code from here... */
+		/* TODO: Add code from here... */
 		
 		/* ...to here */
 #endif
@@ -260,7 +260,9 @@ void split(float * pSrc, float * pDst1, float * pDst2, int length){
 void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 		float * ptxPilot, float * pEqualized, float * hhat_conj, int length){
 	/*
-	*   Equalize the channel by multiplying with the conjugate of the channel
+	*   Equalize the channel by multiplying with the conjugate of the channel.
+	*   Afterwards, estimate the data message by multiplying the recieved
+	*   message with the conjugate channel.
 	*  INP:
 	*   prxMes[] - complex vector with received data message in frequency domain (FD)
 	*   prxPilot[] - complex vector with received pilot in FD
@@ -271,20 +273,21 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	*   is equalized)
 	*   hhat_conj[] -  complex vector with estimated conjugated channel gain
 	*/
+	//Temporary storage array
+	float pTmp[2*length];
 #ifdef MASTER_MODE
 #include "../../secret_sauce.h"
 	DO_OFDM_CONJ_EQUALIZE();
 #else
-	/* Estimate the conjugate of channel by multiplying the conjugate of 
-	* prxPilot with ptxPilot and scale by 0.5.
-	* Use a combination of the functions
+	/* Use a combination of the functions;
 	* 	arm_cmplx_conj_f32()
 	* 	arm_cmplx_mult_cmplx_f32()
 	* The reference page for these DSP functions can be found here: 
-	* http://www.keil.com/pack/doc/CMSIS/DSP/html/index.html Estimate the message by 
-	* multiplying prxMes with the conjugate channel and store it in pEqualized */
+	* http://www.keil.com/pack/doc/CMSIS/DSP/html/index.html 
+	* The array pTmp may be freely used and is long enough to store any complex
+	* vector of up to length elements. */
 	
-	/* Add code from here...*/
+	/* TODO: Add code from here...*/
 	
 	
 	/* ...to here */
@@ -334,7 +337,7 @@ void lab_ofdm_process_tx(float * real_tx, bool randpilot_enbl){
 	lab_ofdm_process_qpsk_encode(pilot_message, ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
 	
 	/* Plot constellation diagram */
-	float axis[4] = {-2, 2, -2, 2};
+	float axis[4] = {-1.5, 1.5, -1.5, 1.5};
 	float plot_re[NUMEL(ofdm_buffer)/2];
 	float plot_im[NUMEL(ofdm_buffer)/2];
 	cnvt_cmplx_2_re_im(ofdm_buffer, plot_re, plot_im, NUMEL(plot_re));
@@ -429,7 +432,7 @@ void lab_ofdm_process_rx(float * real_rx_buffer){
 	err_norm = sqrtf(err_norm/LAB_OFDM_BLOCKSIZE);
 	
 	/* Plot constellation diagram */
-	float axis[4] = {-2, 2, -2, 2};
+	float axis[4] = {-1.5, 1.5, -1.5, 1.5};
 	float plot_re[NUMEL(soft_symb)/2];
 	float plot_im[NUMEL(soft_symb)/2];
 	cnvt_cmplx_2_re_im(soft_symb, plot_re, plot_im, NUMEL(plot_re));
