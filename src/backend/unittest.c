@@ -79,7 +79,7 @@ void unittest_run(void){
 	(void) check_eps;
 	
 	seed = board_get_randseed();
-	printf(DEBUG_LINESEP "Testing functions with reference input parameters\n");
+	printf("Testing functions with reference input parameters\n");
 #if defined(SYSMODE_LMS)
 	printf("Testing my_lms(...)\n\n");
 	
