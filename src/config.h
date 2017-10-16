@@ -41,25 +41,28 @@
  * 
  * Course projects. These are missing some lines of code (which you need to add).
  * 
+ * SYSMODE_OFDM; will compile the project for the OFDM project.
+ * Will call the lab_ofdm() function when AUDIO_BLOCKSIZE samples are
+ * available from the microphone.
  * 
  * SYSMODE_LMS; will compile the project for the LMS adaptive filter project.
  * Will call the lab_dsp_lms() function when AUDIO_BLOCKSIZE samples are
- * available from the microphone.
- * SYSMODE_OFDM; will compile the project for the OFDM project.
- * Will call the lab_ofdm() function when AUDIO_BLOCKSIZE samples are
  * available from the microphone.
  * 
  * Note; only one system mode may be defined at a time!
  * 
  */
+//Fully functional example system modes
 #define SYSMODE_TEST1
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
 //#define SYSMODE_TEST4
-//#define SYSMODE_LMS
-//#define SYSMODE_OFDM
 //#define SYSMODE_RADAR
 //#define SYSMODE_FFT
+
+//Student project system modes
+//#define SYSMODE_OFDM
+//#define SYSMODE_LMS
 
 #if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
