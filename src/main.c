@@ -47,7 +47,6 @@ int main(void){
 	example_test1_init();
 #elif defined(SYSMODE_TEST2)
 	example_test2_init();
-	example_test2_btnpress();	//Used to force printing a status message on startup
 #elif defined(SYSMODE_TEST3)
 	example_test3_init();
 #elif defined(SYSMODE_TEST4)
