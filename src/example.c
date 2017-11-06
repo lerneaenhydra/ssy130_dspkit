@@ -41,6 +41,7 @@ bool audio_src_mic = false;
 /** @breif State-keeping variable for bit-crusher state */
 int_fast8_t bitcrush_depth = 5;
 int_fast8_t bitcrush_dec = BITCRUSH_MINDEC;
+bool bitcrush_reconstruction_zoh = true;
 
 
 /* Implement a flanger using a time-varying FIR filter.
@@ -94,7 +95,8 @@ void example_test1_init(void){
 			"\t'5' - Increase bit crusher amplitude bit-depth\n"
 			"\t'6' - Decrease bit crusher amplitude bit-depth\n"
 			"\t'7' - Increase bit crusher sample-rate\n"
-			"\t'8' - Decrease bit crusher sample-rate\n" );
+			"\t'8' - Decrease bit crusher sample-rate\n"
+			"\t'9' - Toggle bit crusher reconstruction mode\n");
 	
 }
 
@@ -153,6 +155,18 @@ void example_test1(void){
 				bitcrush_dec++;
 			}
 			printf("Updating bit-crusher sample-rate to %d Hz\n", AUDIO_SAMPLE_RATE / (1<<bitcrush_dec));
+			break;
+		case '9':
+			{
+				bitcrush_reconstruction_zoh = !bitcrush_reconstruction_zoh;
+				int_fast32_t samprate;
+				if(bitcrush_reconstruction_zoh){
+					samprate = AUDIO_SAMPLE_RATE / (1<<bitcrush_dec);
+				}else{
+					samprate = AUDIO_SAMPLE_RATE;
+				}
+				printf("Applying zero-order-hold reconstruction at sample rate %d for bitcrusher\n", samprate);
+			}
 			break;
 		}
 	}
@@ -224,7 +238,11 @@ void example_test1(void){
 		
 		//Now apply sample-rate-reduction
 		for(i = 0; i < AUDIO_BLOCKSIZE; i+=(1<<bitcrush_dec)){
-			arm_fill_f32(output[i], &output[i], 1<<bitcrush_dec);
+			if(bitcrush_reconstruction_zoh){
+				arm_fill_f32(output[i], &output[i], 1<<bitcrush_dec);	//Set 2^bitcrush_dec samples to the same value, i.e. equivalent to ZOH at low sample-rate
+			}else{
+				arm_fill_f32(0.0f, &output[i+1], (1<<bitcrush_dec)-1);	//Set 2^bitcrush_dec samples to zero, i.e. equivalent to traditional upsampling
+			}
 		}
 	}
 		break;
