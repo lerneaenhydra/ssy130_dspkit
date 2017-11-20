@@ -423,13 +423,13 @@ void lab_ofdm_process_rx(float * real_rx_buffer){
 	
 	/* Determine RMSE for the symbols */
 	float tmp[2*LAB_OFDM_BLOCKSIZE];
-	float err_norm=0;
+	float evm = 0;
 	arm_sub_f32(soft_symb, ofdm_buffer, tmp, 2*LAB_OFDM_BLOCKSIZE);
 	arm_cmplx_mag_squared_f32(tmp, tmp, LAB_OFDM_BLOCKSIZE );
 	for ( i=0; i< LAB_OFDM_BLOCKSIZE; i++){
-		err_norm += tmp[i];
+		evm += tmp[i];
 	}
-	err_norm = sqrtf(err_norm/LAB_OFDM_BLOCKSIZE);
+	evm = sqrtf(evm/LAB_OFDM_BLOCKSIZE);
 	
 	/* Plot constellation diagram */
 	float axis[4] = {-1.5, 1.5, -1.5, 1.5};
@@ -461,7 +461,7 @@ void lab_ofdm_process_rx(float * real_rx_buffer){
 	printf("Assumed pilot:  '%s'(non-printable characters replaced by '_')\n", pilot_message_safe);
 	printf("Assumed message:'%s'\n", tx_message_safe);
 	printf("Received:       '%s'\n", rec_message_safe);
-	printf("QPSK symbol RMSE %f\n\n", err_norm);
+	printf("QPSK symbol EVM  %f\n\n", evm);
 }
 
 #endif
