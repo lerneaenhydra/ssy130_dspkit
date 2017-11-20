@@ -421,7 +421,7 @@ void lab_ofdm_process_rx(float * real_rx_buffer){
 	/* Here we calulate the "correct" symbols in the message */
 	lab_ofdm_process_qpsk_encode(message, ofdm_buffer, LAB_OFDM_CHAR_MESSAGE_SIZE);
 	
-	/* Determine RMSE for the symbols */
+	/* Determine EVM for the symbols */
 	float tmp[2*LAB_OFDM_BLOCKSIZE];
 	float evm = 0;
 	arm_sub_f32(soft_symb, ofdm_buffer, tmp, 2*LAB_OFDM_BLOCKSIZE);
