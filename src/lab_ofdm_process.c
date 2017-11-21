@@ -102,6 +102,7 @@ void lab_ofdm_process_init(void){
 	arm_fir_decimate_init_f32 (&S_decim, LAB_OFDM_FILTER_LENGTH, LAB_OFDM_UPSAMPLE_RATE, lp_filter, pState_decim, LAB_OFDM_TX_FRAME_SIZE);
 	arm_fir_interpolate_init_f32 (&S_intp, LAB_OFDM_UPSAMPLE_RATE, LAB_OFDM_FILTER_LENGTH, lp_filter, pState_intp, LAB_OFDM_BB_FRAME_SIZE);
 	rng_seed = util_get_seed();
+	lab_ofdm_process_set_randpilot(true);
 	printf("OFDM initialized!\n");
 }
 
@@ -309,10 +310,8 @@ void ofdm_soft_symb(float * prxMes, float * hhat_conj, float * soft_symb, int le
 	}
 }
 
-void lab_ofdm_process_tx(float * real_tx, bool randpilot_enbl){
-	/* Create one frame including an ofdm pilot and ofdm message message block */
-	/* Generate pilot and message strings */
-	char rawmessage[NUMEL(message)+1];
+void lab_ofdm_process_set_randpilot(bool randpilot_enbl){
+	/* Generate pilot string */
 	char rawpilot[NUMEL(pilot_message)+1];
 	if(randpilot_enbl){
 		blocks_gen_str(rawpilot, NUMEL(rawpilot), &rng_seed);
@@ -322,15 +321,23 @@ void lab_ofdm_process_tx(float * real_tx, bool randpilot_enbl){
 			rawpilot[i] = 'A' + i;
 		}
 	}
+	size_t i;
+	for(i = 0; i < NUMEL(pilot_message); i++){
+		pilot_message[i] = rawpilot[i];
+	}
+}
+
+void lab_ofdm_process_tx(float * real_tx){
+	/* Create one frame including an ofdm pilot and ofdm message message block */
+	/* Generate message string */
+	char rawmessage[NUMEL(message)+1];
+
 	blocks_gen_str(rawmessage, NUMEL(rawmessage), &rng_seed);
 	
-	/* Copy generated strings to non-null-padded pilot/message strings */
+	/* Copy generated string to non-null-padded message strings */
 	size_t i;
 	for(i = 0; i < NUMEL(message); i++){
 		message[i] = rawmessage[i];
-	}
-	for(i = 0; i < NUMEL(pilot_message); i++){
-		pilot_message[i] = rawpilot[i];
 	}
 	
 	/* Encode pilot string to qpsk sybols */

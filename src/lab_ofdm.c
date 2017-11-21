@@ -287,6 +287,7 @@ void lab_ofdm(void){
 		case 'd':
 			randpilot_enbl = !randpilot_enbl;
 			printf("Randomized pilot %s\n", randpilot_enbl ? "enabled" : "disabled");
+			lab_ofdm_process_set_randpilot(randpilot_enbl);
 			break;
 		case 'f':
 			bpfilt_enbl = !bpfilt_enbl;
@@ -333,7 +334,7 @@ void lab_ofdm(void){
 	
 	//Generate output data and send as needed
 	if((sendmsg_delay--) == 0){
-		lab_ofdm_process_tx(tx_data, randpilot_enbl); // Create OFDM frame to send
+		lab_ofdm_process_tx(tx_data); // Create OFDM frame to send
 		misc_queuedbuf_init(&queue_s, tx_data, NUMEL(tx_data)); // Add to queue
 	}
 	

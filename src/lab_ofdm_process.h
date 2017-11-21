@@ -26,7 +26,8 @@ extern char stat_message[];
 
 void lab_ofdm_process_qpsk_encode(char * pMessage, float * pDst, int Mlen);
 void lab_ofdm_process_qpsk_decode(float * pSrc, char * pMessage,  int Mlen);
-void lab_ofdm_process_tx(float * tx_data, bool randpilot_enbl);
+void lab_ofdm_process_set_randpilot(bool randpilot_enbl);
+void lab_ofdm_process_tx(float * tx_data);
 void lab_ofdm_process_rx(float * rx_data);
 void lab_ofdm_process_init(void);
 
