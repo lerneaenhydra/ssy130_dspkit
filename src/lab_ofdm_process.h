@@ -32,31 +32,42 @@ void lab_ofdm_process_rx(float * rx_data);
 void lab_ofdm_process_init(void);
 
 
-/*
-*   Equalize the channel by multiplying with the conjugate of the channel
-*  INP:
-*   prxMes[] - complex vector with received data message in frequency domain (FD)
-*   prxPilot[] - complex vector with received pilot in FD
-*   ptxPilot[] - complex vector with transmitted pilot in FD
-*   length  - number of complex OFDM symbols
-*  OUT:
-*   pEqualized[] - complex vector with equalized data message (Note: only phase
-*   is equalized)
-*   hhat_conj[] -  complex vector with estimated conjugated channel gain
+/* Equalize channel by multiplying with the conjugate of the channel
+* Essentially, we want to create an estimate of the channel using the
+* transmitted (ptxPilot) and recieved (prxPilot) pilot signals.
+*
+* There are two things you need to do here;
+* 1) Estimate the conjugate of the channel
+* 2) Equalize the recieved message by multiplying with the previous results
+*
+* Note that we only need to estimate the phase of the channel!
+* (We could, at higher computational cost, estimate the phase and magnitude of
+* the channel by letting \hat{H[k]} = prxPilot[k]/ptxPilot[k], for
+* k = [0,..,length-1]). We need to estimate the channel phase without using a
+* (computationally expensive) divide operation.
+* 
+* INP:
+*  prxMes[] - complex vector with received data message in frequency domain (FD)
+*  prxPilot[] - complex vector with received pilot in FD
+*  ptxPilot[] - complex vector with transmitted pilot in FD
+*  length  - number of complex OFDM symbols
+* OUT:
+*  pEqualized[] - complex vector with equalized data message (Note: only phase
+*  is equalized)
+*  hhat_conj[] -  complex vector with estimated conjugated channel gain
 */
 void ofdm_conj_equalize(float * prxMes, float * prxPilot, float * ptxPilot, float * pEqualized, float * hhat_conj, int length);
 
 /*
-* Converts a complex signal in the form of two vectors (pRe and pIm)
-* into one float vector of size 2*length where the real and imaginary parts are
-* interleaved. i.e [pCmplx[0]=pRe[0], pCmplx[1]=pIm[0],pCmplx[2]=pRe[1], pCmplx[3]=pIm[1]
-* etc.
+* Converts a complex signal represented as pRe + sqrt(-1) * pIm into an
+* interleaved real-valued vector of size 2*length
+* I.e. pCmplx = [pRe[0], pIm[0], pRe[1], pIm[1], ... , pRe[length-1], pIm[length-1]]
 */
 void cnvt_re_im_2_cmplx(float * pRe, float * pIm, float * pCmplx, int length);
 
 /*
 * Demodulate a real signal (pSrc) into a complex signal (pRe and pPim)
-* with modulation center frequency f and the signal length is length
+* with modulation center frequency f and length 'length'.
 */
 void ofdm_demodulate(float * pSrc, float * pRe, float * pIm, float f, int length);
 

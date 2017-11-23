@@ -205,7 +205,10 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	#include "../../secret_sauce.h"
 	DO_LMS();
 #else
-	//TODO: Implement your own LMS update here!
+	/* TODO: Add code from here...*/
+	
+	
+	/* ...to here */
 #endif
 
 	// Place last lms_taps-1 inpuy (y) samples first in state vector lms_state
