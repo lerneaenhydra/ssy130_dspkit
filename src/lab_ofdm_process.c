@@ -179,7 +179,14 @@ void remove_cyclic_prefix(float *pSrc, float * pDst, int slen, int cp_size){
 void ofdm_modulate(float * pRe, float * pIm, float* pDst, float f , int length){
 	/*
 	* Modulates a discrete time signal with the complex exponential exp(i*2*pi*f)
-	* and saves the real part of the signal in vector pDst
+	* and saves the real part of the signal in vector pDst.
+	* In matlab syntax;
+	* pDst = real( (pRe + 1j * pIm) .* exp(1j*2*pi*f*[1:length]))
+	* 
+	* It is very easy (try doing this!) to show that this is equivalent to
+	*
+	* omega = 2*pi*f*[1:length]
+	* pDst = pRe .* cos(omega) - pIm .* sin(omega)
 	*/
 	int i;
 	float inc,omega=0;
@@ -193,6 +200,11 @@ void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int lengt
 	/*
 	* Demodulate a real signal (pSrc) into a complex signal (pRe and pPim)
 	* with modulation center frequency f and length 'length'.
+	*
+	* In matlab syntax;
+	* z = pSrc * exp(1j*2*pi*f*[1:length])
+	* pRe = real(z)
+	* pIm = imag(z)
 	*/
 	#ifdef MASTER_MODE
 #include "../../secret_sauce.h"
@@ -261,17 +273,20 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 		float * ptxPilot, float * pEqualized, float * hhat_conj, int length){
 	/* Equalize channel by multiplying with the conjugate of the channel
 	* Essentially, we want to create an estimate of the channel using the
-	* transmitted (ptxPilot) and recieved (prxPilot) pilot signals.
+	* transmitted (ptxPilot) and received (prxPilot) pilot signals.
 	*
 	* There are two things you need to do here;
 	* 1) Estimate the conjugate of the channel
-	* 2) Equalize the recieved message by multiplying with the previous results
+	* 2) Equalize the received message by multiplying prxMeas with hhat_conj
 	*
-	* Note that we only need to estimate the phase of the channel!
-	* (We could, at higher computational cost, estimate the phase and magnitude of
-	* the channel by letting \hat{H[k]} = prxPilot[k]/ptxPilot[k], for
-	* k = [0,..,length-1]). We need to estimate the channel phase without using a
-	* (computationally expensive) divide operation.
+	* Note that we only need to estimate the phase of the channel! Any
+	* magnitude mismatch has no effect (think about why this is true, how do
+	* we convert symbols to bits?
+	*
+	* We could, at higher computational cost, estimate the phase and
+	* magnitude of the channel by letting \hat{H[k]} = prxPilot[k]/ptxPilot[k],
+	* for k = [0,..,length-1]. Here we need to estimate the channel phase
+	* without using a (computationally expensive) divide operation.
 	* 
 	* INP:
 	*  prxMes[] - complex vector with received data message in frequency domain (FD)

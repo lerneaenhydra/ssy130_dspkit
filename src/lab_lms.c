@@ -185,6 +185,7 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 			float lms_mu, float * lms_coeffs, float * lms_state, int lms_taps){
 	/** @brief Perform one iteration of the LMS filter
 	 * This function is missing some code that you need to add to get working.
+	 * Accessible variables;
 	 * @param y 			vector of input signal, block_size elements
 	 * @param x 			vector of "desired" signal, block_size elements
 	 * @param xhat 			vector of filter output, block_size elements
