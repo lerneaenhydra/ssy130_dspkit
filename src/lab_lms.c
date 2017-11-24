@@ -49,6 +49,7 @@ void lab_lms_init(void){
 	dist_src = noise_src; // start with wide band noise
 	signal_mode = signal_on;
 	PRINT_HELPMSG();
+	BUILD_BUG_ON(LAB_LMS_TAPS_ONLINE >= AUDIO_BLOCKSIZE);	//LMS state update assumes one blocksize covers all taps
 }
 
 void lab_lms(void){
@@ -183,22 +184,55 @@ void lab_lms(void){
 
 void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 			float lms_mu, float * lms_coeffs, float * lms_state, int lms_taps){
-	/** @brief Perform one iteration of the LMS filter
+	/** @brief Perform one block iteration of the LMS filter
 	 * This function is missing some code that you need to add to get working.
-	 * Accessible variables;
-	 * @param y 			vector of input signal, block_size elements
-	 * @param x 			vector of "desired" signal, block_size elements
-	 * @param xhat 			vector of filter output, block_size elements
-	 * @param e				vector of error output, block_size elements
-	 * @param block_size	length of all above vectors
-	 * @param lms_mu		step size of the LMS filter update
-	 * @param lms_coeffs	vector of filter coefficients, **STORED IN REVERSE ORDER**. lms_taps elements
-	 * @param lms_state		vector of filter state, (block_size + lms_taps - 1) elements
-	 * @param lms_taps		the number of elements in lms_coeffs (i.e. filter length)
+	 * 
+	 * The course book describes the LMS algorithm as;
+	 * (Digital signal processing, Mulgrew et. al. 2003, pg. 229, table 8.2)
+	 * 
+	 * ----------------------------------------
+	 * Initialization:
+	 * set h to zero
+	 * 
+         * Update:
+	 * For each sample n = 1, 2, 3, ... do
+	 * xhat(n) = h(n-1) .* y(n)
+	 * e(n) = x(n) - xhat(n)
+	 * h(n) = h(n-1) + 2*mu*y(n)*e(n)
+	 * ----------------------------------------
+	 * 
+	 * The initialization step has already been taken care of.
+	 * You now need to write code that performs the update step.
+	 * 
+	 * The following variables are accessible by you:
+	 * block_size		length of the following vectors;
+	 * 		y			the block-size'th most recent input signals (see lms_state)
+	 * 		x			vector of "desired" signal
+	 * 		xhat		vector of filter output
+	 * 		e			vector of error output
+	 * 
+	 * lms_mu			step size of the LMS filter update
+	 * 
+	 * lms_coeffs		vector of filter coefficients (i.e. h) **STORED IN REVERSE ORDER**
+	 * lms_taps			the number of elements in lms_coeffs (i.e. filter length)
+	 * 
+	 * By reverse order we mean that the true filter is given as
+	 * h = [lms_coeffs[lms_taps-1], ..., lms_coeffs[1], lms_coeffs[0]]
+	 * 
+	 * lms_state		The most recent (block_size + lms_taps - 1) elements of y
+	 * The code that updates LMS state with the new elements in y is already
+	 * implemented for you
+	 * 
+	 * (All signal vectors orderd with oldest element first, i.e.
+	 * x = [x_(n-10), x_(n-9), ..., x_(n))])
+	 * 
+	 * Note that as the DSP-kit does block-based processing on each call to
+	 * my_lms(...) you need to process block_size samples!
 	 */
 
-	// Copy new data into lms_state starting from index lms_taps-1
-	// pState has length block_size+lms_taps-1
+	/* Copy new input into lms_state, ordered as
+	* [ ... <lms_taps-1 old elements> ... , ... <block_size new elements> ... ]
+	*/
 	arm_copy_f32(y, &(lms_state[lms_taps-1]), block_size);
 	
 #ifdef MASTER_MODE
@@ -212,6 +246,9 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	/* ...to here */
 #endif
 
-	// Place last lms_taps-1 inpuy (y) samples first in state vector lms_state
+	/* Update lms state, ensure the lms_taps-1 first values correspond to the
+	* lms_taps-1 last values of y, i.e.
+	* [ y[end - lms_taps - 1], ..., y[end], ... <don't care values, will be filled with new y on next call> ...]
+	 */
 	arm_copy_f32( &y[block_size - (lms_taps-1)], lms_state, lms_taps-1);
 };
