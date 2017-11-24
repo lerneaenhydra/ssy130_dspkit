@@ -38,7 +38,8 @@ int main(void){
 	board_init();
 	
 	printf(DEBUG_STARTUPMSG);
-	
+
+	blocks_sources_init();
 	unittest_run();
 
 	idle_led_timer = systime_get_delay(0);

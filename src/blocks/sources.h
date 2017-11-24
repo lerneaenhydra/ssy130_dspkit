@@ -3,6 +3,9 @@
 #ifndef SOURCES_H_
 #define SOURCES_H_
 
+/** @brief Startup initialization for all blocks */
+void blocks_sources_init(void);
+
 /** @brief Updates all internally-generated time-varying signals
  * To be called by the backend subsystem only. */
 void blocks_sources_update(void);

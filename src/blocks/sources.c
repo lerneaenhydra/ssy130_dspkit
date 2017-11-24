@@ -2,6 +2,7 @@
 #include "config.h"
 #include <math.h>
 #include "backend/hw/headphone.h"
+#include "backend/printfn/printfn.h"
 #include "util.h"
 #include "arm_math.h"
 #include "waveform1.h"
@@ -11,6 +12,7 @@
 #include "waveform5.h"
 #include "waveform6.h"
 #include "waveform_theonlysolution.h"
+#include "waveform_jul.h"
 
 /** @brief One period of the secret "mystery" disturbance signal. Identical
  *samples are used regardless of the system sample-rate (i.e. pitch will be
@@ -108,6 +110,22 @@ float cos_ang = 0;
 /** @brief The current frequency to use for sine/cosine outputs, default to 1kHz */
 float trig_freq = 1e3;
 
+int16_t const * waveform_ptr = waveform;
+size_t    waveform_N = NUMEL(waveform);
+
+#define MSG "\n\n  .-\" +' \"-.    __,  ,___,\n /.'.'A_'*`.\\  (--|__| _,,_ ,_ \n|:.*'/\\-\\. ':|   _|  |(_||_)|_)\\/\n|:.'.||\"|.'*:|  (        |  | _/\n \\:~^~^~^~^:/          __,  ,___,\n  /`-....-'\\          (--|__| _ |' _| _,   ,\n /          \\           _|  |(_)||(_|(_|\\//_)\n `-.,____,.-'          (               _/\n\n" DEBUG_LINESEP
+void blocks_sources_init(void){
+	#ifdef JUL_AVAILABLE
+		uint_fast32_t seed = util_get_seed();
+		uint_fast16_t r = util_rand_range(0, 25, &seed);
+		if(r == 0){
+			waveform_ptr = waveform_jul;
+			waveform_N = NUMEL(waveform_jul);
+			printf(MSG);
+		}
+	#endif
+}
+
 int blocks_sources_get_h_sim_len(void){
 	return NUMEL(h_sim_int);
 }
@@ -164,8 +182,8 @@ void blocks_sources_cos(float * sample_block){
 void blocks_sources_waveform(float * sample_block){
 	int_fast32_t i;
 	for(i = 0; i < AUDIO_BLOCKSIZE; i++){
-		sample_block[i] = waveform[waveform_idx++] * (1.0f/INT16_MAX);
-		if(waveform_idx >= NUMEL(waveform)){
+		sample_block[i] = waveform_ptr[waveform_idx++] * (1.0f/INT16_MAX);
+		if(waveform_idx >= waveform_N){
 			waveform_idx = 0;
 		}
 	}
