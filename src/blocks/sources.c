@@ -116,6 +116,7 @@ size_t    waveform_N = NUMEL(waveform);
 #define MSG "\n\n  .-\" +' \"-.    __,  ,___,\n /.'.'A_'*`.\\  (--|__| _,,_ ,_ \n|:.*'/\\-\\. ':|   _|  |(_||_)|_)\\/\n|:.'.||\"|.'*:|  (        |  | _/\n \\:~^~^~^~^:/          __,  ,___,\n  /`-....-'\\          (--|__| _ |' _| _,   ,\n /          \\           _|  |(_)||(_|(_|\\//_)\n `-.,____,.-'          (               _/\n\n" DEBUG_LINESEP
 void blocks_sources_init(void){
 	#ifdef JUL_AVAILABLE
+	#ifdef SYSMODE_LMS
 		uint_fast32_t seed = util_get_seed();
 		uint_fast16_t r = util_rand_range(0, 25, &seed);
 		if(r == 0){
@@ -123,6 +124,7 @@ void blocks_sources_init(void){
 			waveform_N = NUMEL(waveform_jul);
 			printf(MSG);
 		}
+	#endif
 	#endif
 }
 
