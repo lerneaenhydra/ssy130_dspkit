@@ -194,11 +194,11 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * Initialization:
 	 * set h to zero
 	 * 
-         * Update:
+	 * Update:
 	 * For each sample n = 1, 2, 3, ... do
-	 * xhat(n) = h(n-1) .* y(n)
+	 * xhat(n) = h(n-1) * y(n) [note: here '*' implies the dot product]
 	 * e(n) = x(n) - xhat(n)
-	 * h(n) = h(n-1) + 2*mu*y(n)*e(n)
+	 * h(n) = h(n-1) + 2 * mu * y(n) * e(n)
 	 * ----------------------------------------
 	 * 
 	 * The initialization step has already been taken care of.
@@ -206,7 +206,7 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * 
 	 * The following variables are accessible by you:
 	 * block_size		length of the following vectors;
-	 * 		y			the block-size'th most recent input signals (see lms_state)
+	 * 		y			the block-size'th most recent input signals (you won't need to use this variable, see lms_state)
 	 * 		x			vector of "desired" signal
 	 * 		xhat		vector of filter output
 	 * 		e			vector of error output
