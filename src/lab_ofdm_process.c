@@ -202,7 +202,7 @@ void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int lengt
 	* with modulation center frequency f and length 'length'.
 	*
 	* In matlab syntax;
-	* z = pSrc * exp(1j*2*pi*f*[1:length])
+	* z = pSrc * exp(-1j*2*pi*f*[1:length])
 	* pRe = real(z)
 	* pIm = imag(z)
 	*/
