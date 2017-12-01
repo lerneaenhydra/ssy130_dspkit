@@ -49,7 +49,7 @@ void lab_lms_init(void){
 	dist_src = noise_src; // start with wide band noise
 	signal_mode = signal_on;
 	PRINT_HELPMSG();
-	BUILD_BUG_ON(LAB_LMS_TAPS_ONLINE >= AUDIO_BLOCKSIZE);	//LMS state update assumes one blocksize covers all taps
+	BUILD_BUG_ON(LAB_LMS_TAPS_ONLINE > AUDIO_BLOCKSIZE);	//LMS state update assumes one blocksize covers all taps
 }
 
 void lab_lms(void){
