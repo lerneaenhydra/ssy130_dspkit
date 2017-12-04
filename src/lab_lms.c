@@ -44,7 +44,7 @@ void lab_lms_init(void){
 	//Manually initialize the LMS filter coefficients and state to all zeros
 	arm_fill_f32(0.0f, lms_coeffs, NUMEL(lms_coeffs));
 	arm_fill_f32(0.0f, lms_state, NUMEL(lms_state));
-	blocks_sources_trig_setfreq(440);
+	blocks_sources_trig_setfreq(LAB_LMS_SINE_TONE_HZ);
 	lms_mode = lms_dsbl; // start with disabled mode
 	dist_src = noise_src; // start with wide band noise
 	signal_mode = signal_on;

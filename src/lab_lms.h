@@ -7,7 +7,8 @@
 #ifndef LAB_LMS_H_
 #define LAB_LMS_H_
 
-#define 	LAB_LMS_MU_INIT		(1.0e-4f)
+#define 	LAB_LMS_MU_INIT			(1.0e-4f)
+#define		LAB_LMS_SINE_TONE_HZ	(440)
 
 // Function pair for the LMS lab assignment
 void lab_lms_init(void);
