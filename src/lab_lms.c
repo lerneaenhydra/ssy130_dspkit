@@ -204,9 +204,22 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * The initialization step has already been taken care of.
 	 * You now need to write code that performs the update step.
 	 * 
+	 * If you are unfamiliar with the C-language there is a Matlab
+	 * implementation of the LMS algorithm in the 'matlab_lms' project 
+	 * subdirectory. Run the 'test_lms.m' script to use it and draw a few
+	 * plots. It's up to you to implement an equivalent to the my_lms.m
+	 * function.
+	 *
+	 * Note that in the C implementation we won't split this function into
+	 * two parts (doLms and my_lms) to save execution time. You'll need to
+	 * correctly index lms_state and x directly without using an equivalent of
+	 * the 'doLms' function.
+	 * 
+	 * ----------------------------------------
+	 * 
 	 * The following variables are accessible by you:
 	 * block_size		length of the following vectors;
-	 * 		y			the block-size'th most recent input signals (you won't need to use this variable, see lms_state)
+	 * 		y			the block-size'th most recent input signals (**you won't need to use this variable, see lms_state**)
 	 * 		x			vector of "desired" signal
 	 * 		xhat		vector of filter output
 	 * 		e			vector of error output
@@ -223,11 +236,9 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * The code that updates LMS state with the new elements in y is already
 	 * implemented for you
 	 * 
-	 * (All signal vectors orderd with oldest element first, i.e.
-	 * x = [x_(n-10), x_(n-9), ..., x_(n))])
+	 * Note: All signal vectors orderd with oldest element first, i.e.
+	 * x = [x_(n-10), x_(n-9), ..., x_(n))]
 	 * 
-	 * Note that as the DSP-kit does block-based processing on each call to
-	 * my_lms(...) you need to process block_size samples!
 	 */
 
 	/* Copy new input into lms_state, ordered as
