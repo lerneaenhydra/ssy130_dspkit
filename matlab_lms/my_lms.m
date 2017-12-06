@@ -17,20 +17,20 @@ function [xhat, e, lms_coeffs, lms_coeffs_history] = my_lms(lms_state, lms_coeff
 	
 	%Extra variable used to store lms coefficients
 	%NOT PRESENT IN C-IMPLEMENTATION
-	lms_coeffs_history = zeros(length(lms_state), length(lms_coeffs));
+	lms_coeffs_history = zeros(block_size, length(lms_coeffs));
 	%Pre-allocate error and xhat
 	%NOT PRESENT IN C-IMPLEMENTATION
 	e = zeros(block_size,1);
 	xhat = zeros(block_size,1);
 	
 	%Do block_size LMS iterations
-	for k=length(lms_coeffs):length(lms_state)
+	for k=1:block_size
 		%Generate indices of lms_state that corresponds to y(k)
 		%i.e. for the current iteration, what was the vector y?
-		y = lms_state(k - length(lms_coeffs) + 1:k);
+		idx_y = k:k + length(lms_coeffs) - 1;
 		
 		%Do one single LMS iteration
-		[xhat(k), e(k), lms_coeffs] = doLms(y, lms_coeffs, x(k), mu);
+		[xhat(k), e(k), lms_coeffs] = doLms(lms_state(idx_y), lms_coeffs, x(k), mu);
 		
 		%NOT PRESENT IN C IMPLEMENTATION
 		%Store this iteration's LMS filter coefficients
