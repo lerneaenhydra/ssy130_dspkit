@@ -44,19 +44,29 @@ void asciiplot_draw(struct asciiplot_s * const plot){
 	}
 	
 	//Determine the range of values present in data
-	float axis[4] = {0, 0, 0, 0};
-	for(i = 0; i < plot->data_len; i++){
-		if(axis[0] > xdata[i]){
+	/* Use negation expression in if statement to force any finite number to
+	 * overwrite a NaN axis extent (as any comparison with NaN returns false)
+	 */
+	float axis[] = {xdata[0], xdata[0], plot->ydata[0], plot->ydata[0]};
+	for(i = 1; i < plot->data_len; i++){
+		if(!(axis[0] < xdata[i])){
 			axis[0] = xdata[i];
 		}
-		if(axis[1] < xdata[i]){
+		if(!(axis[1] > xdata[i])){
 			axis[1] = xdata[i];
 		}
-		if(axis[2] > plot->ydata[i]){
+		if(!(axis[2] < plot->ydata[i])){
 			axis[2] = plot->ydata[i];
 		}
-		if(axis[3] < plot->ydata[i]){
+		if(!(axis[3] > plot->ydata[i])){
 			axis[3] = plot->ydata[i];
+		}
+	}
+
+	//Handle NaN axis extents, arbitrarily set to zero
+	for(i = 0; i < NUMEL(axis); i++){
+		if(axis[i] != axis[i]){
+			axis [i] = 0;
 		}
 	}
 	

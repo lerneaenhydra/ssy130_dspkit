@@ -9,21 +9,37 @@
 #include "backend/asciiplot.h"
 
 /** @brief Relative change in mu on increase/decrease events */
-#define		LAB_LMS_MU_CHANGE	(1.2)
+#define		LAB_LMS_MU_CHANGE		(1.2f)
 
 /** @brief Number of filter taps to use for on-line LMS operation */
 #define		LAB_LMS_TAPS_ONLINE		(128)
 
+/** @brief Length of stored lms filter error log [s]
+ * The first error output from the LMS filter will be saved on every LMS call
+ * this effectively means every AUDIO_BLOCKSIZE'th error value will be saved.
+ * Log will record over this period after resetting the LMS filter coefficients */
+#define 	LAB_LMS_ERRLOG_LEN_s	(20)
+
 // Stateful variables for the LMS lab
 float lms_coeffs[LAB_LMS_TAPS_ONLINE];
 float lms_state[LAB_LMS_TAPS_ONLINE + AUDIO_BLOCKSIZE - 1];
-float lms_mu       = LAB_LMS_MU_INIT;
+float lms_err_buf[LAB_LMS_ERRLOG_LEN_s * AUDIO_SAMPLE_RATE / AUDIO_BLOCKSIZE];
+size_t lms_err_buf_idx;
+float lms_err_buf_time;
+float lms_mu = LAB_LMS_MU_INIT;
 char pname[] = "h";
 
 // enum type for different modes of operation
 enum lms_modes {lms_updt, lms_enbl, lms_dsbl} lms_mode;
 enum dist_srces {cos_src, noise_src} dist_src;
 enum signal_modes {signal_off, signal_on} signal_mode;
+
+// Internal functions
+static void lab_lms_reset_errlog(void){
+	arm_fill_f32(NAN, lms_err_buf, NUMEL(lms_err_buf));
+	lms_err_buf_idx = 0;
+	lms_err_buf_time = 0;
+}
 
 #define PRINT_HELPMSG() 																								\
 		printf("Usage guide;\n"																							\
@@ -32,17 +48,19 @@ enum signal_modes {signal_off, signal_on} signal_mode;
 			"\t'f' - LMS filtering applied, update disabled (h held constant), error signal output to right speaker\n"	\
 			"\t'u' - LMS filtering applied with filter update, error signal output to right speaker\n"					\
 			"\t't' - Toggle disturbance source between cosine signal and wide band noise\n"								\
-			"\t'r' - Reset filter coefficients to 0\n"																	\
+			"\t'r' - Reset filter coefficients to 0 and empty logged error output\n"									\
 			"\t'1' - Increase step size mu\n"																			\
 			"\t'2' - Decrease step size mu\n"																			\
 			"\t'm' - Prints the filter coefficients h in a format useful for import in Matlab\n"						\
-			"\t'p' - Plots the current filter coefficients directly in the terminal\n"									\
+			"\t'h' - Plots the current filter coefficients directly in the terminal\n"									\
+			"\t'e' - Plots the most recent " xstr(LAB_LMS_ERRLOG_LEN_s) " seconds of the LMS filter error output\n"		\
 			"\t's' - Toggles music signal\n");																			\
 
 void lab_lms_init(void){
 	//Manually initialize the LMS filter coefficients and state to all zeros
 	arm_fill_f32(0.0f, lms_coeffs, NUMEL(lms_coeffs));
 	arm_fill_f32(0.0f, lms_state, NUMEL(lms_state));
+	lab_lms_reset_errlog();
 	blocks_sources_trig_setfreq(LAB_LMS_SINE_TONE_HZ);
 	lms_mode = lms_dsbl; // start with disabled mode
 	dist_src = noise_src; // start with wide band noise
@@ -74,6 +92,7 @@ void lab_lms(void){
 			printf("Step size mu set to %e\n", lms_mu);
 			break;
 		case 'r':
+			lab_lms_reset_errlog();
 			arm_fill_f32(0.0f, lms_coeffs, NUMEL(lms_coeffs));
 			printf("Reset filter coefficients (h) to zero\n");
 			break;
@@ -98,7 +117,7 @@ void lab_lms(void){
 			printf("Filter coefficiencts in reversed order (use e.g. 'flipud(h)' in Matlab to restore actual order)");
 			print_vector_f(pname, lms_coeffs, NUMEL(lms_coeffs));
 			break;
-		case 'p':
+		case 'h':
 			{
 				float h_hat[NUMEL(lms_coeffs)];
 				//Generate h_hat by reversing lms_coeffs
@@ -116,6 +135,47 @@ void lab_lms(void){
 					.data_len = NUMEL(h_hat),
 					.xlabel = "n",
 					.ylabel = "\\hat{h}(n)",
+					.title = plottitle,
+					.axis = axisdummy,
+					.label_prec = 4
+				};
+				asciiplot_draw(&dummyplot);
+			}
+			break;
+		case 'e':
+			{
+				//Generate LMS log error array
+				float lms_err_log[NUMEL(lms_err_buf)];
+
+				//Copy last lms_err_buf_idx elements, corresponds to oldest stored data
+				arm_copy_f32(&lms_err_buf[lms_err_buf_idx], lms_err_log, NUMEL(lms_err_buf) - lms_err_buf_idx);
+
+				//Copy remaining elements, corresponds to newest stored data
+				arm_copy_f32(lms_err_buf, &lms_err_log[NUMEL(lms_err_buf) - lms_err_buf_idx], lms_err_buf_idx);
+
+				//Generate LMS log time array
+				float errlog_time[NUMEL(lms_err_buf)];
+				errlog_time[0] = lms_err_buf_time - (1.0f * NUMEL(lms_err_buf) * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
+				//Saturate time axis to positive values
+				if(errlog_time[0] < 0){
+					errlog_time[0] = 0;
+				}
+				size_t i;
+				for(i = 0; i < NUMEL(errlog_time) - 1; i++){
+					errlog_time[i+1] = errlog_time[i] + (1.0f * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
+				}
+
+				//Plot result
+				char plottitle[] = "Logged LMS error output";
+				float axisdummy[] = {NAN, NAN, NAN, NAN};	//Auto-scale plot extents
+				struct asciiplot_s dummyplot = {
+					.cols = PLOT_COLS,
+					.rows = PLOT_ROWS,
+					.xdata = errlog_time,
+					.ydata = lms_err_log,
+					.data_len = NUMEL(lms_err_log),
+					.xlabel = "Time since filter reset [s]",
+					.ylabel = "error",
 					.title = plottitle,
 					.axis = axisdummy,
 					.label_prec = 4
@@ -160,11 +220,13 @@ void lab_lms(void){
 		blocks_sinks_leftout(distdata); // Send to left channel
 	}
 	
-	//Update LMS filter if enabled
+	//Do selected filtering operation
 	float lms_mic[AUDIO_BLOCKSIZE];
 	blocks_sources_microphone(lms_mic);
 	float lms_output[AUDIO_BLOCKSIZE];
 	float lms_err[AUDIO_BLOCKSIZE];
+	bool do_lms = false;
+	float net_mu = 0;
 	switch(lms_mode){
 		case lms_dsbl:
 		default:
@@ -173,15 +235,29 @@ void lab_lms(void){
 			break;
 		case lms_enbl:
 			//LMS enabled, zero stepsize
-			my_lms(distdata, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, 0.0f, lms_coeffs, lms_state, LAB_LMS_TAPS_ONLINE);
-			blocks_sinks_rightout(lms_err); // Send cleaned signal to right channel
+			net_mu = 0;
+			do_lms = true;
 			break;
 		case lms_updt:
 			//LMS enabled, stepsize mu
-			my_lms(distdata, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, lms_mu, lms_coeffs, lms_state, LAB_LMS_TAPS_ONLINE);
-			blocks_sinks_rightout(lms_err); // Send cleaned signal to right channel
+			net_mu = lms_mu;
+			do_lms = true;
 			break;
 	}
+
+	if(do_lms){
+		my_lms(distdata, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, net_mu, lms_coeffs, lms_state, LAB_LMS_TAPS_ONLINE);
+		
+		blocks_sinks_rightout(lms_err); // Send cleaned signal to right channel
+		
+		lms_err_buf_time  += (1.0f * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
+
+		//Add the first element of the error output to the logged error signal
+		lms_err_buf[lms_err_buf_idx] = lms_err[0];
+		lms_err_buf_idx = (lms_err_buf_idx+1) % NUMEL(lms_err_buf);	//Wrap err log when log is full
+	}
+
+	
 }
 
 void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
