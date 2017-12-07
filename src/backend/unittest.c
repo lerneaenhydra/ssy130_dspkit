@@ -68,6 +68,7 @@ static void check_eps(float eps){
 		printf(PASS_STR"\nFunction returns values with only minor deviations.\nYour code is _probably_ correct but implemented in a different method giving different rounding errors.\n");
 	}else{
 		printf(FAIL_STR"\nFunction returns values exceeding tolerance (%f).\nYour code is incorrect and must be resolved.\nExecution halted, rework function to allow execution to continue.\n", UNITTEST_TOL);
+        for(;;){};  //Stop execution
 	}
 	printf("Found maximum relative deviation of %g.\n", eps);
 }

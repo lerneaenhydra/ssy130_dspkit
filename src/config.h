@@ -53,7 +53,7 @@
  * 
  */
 //Fully functional example system modes
-#define SYSMODE_TEST1
+//#define SYSMODE_TEST1
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
 //#define SYSMODE_TEST4
@@ -62,7 +62,7 @@
 
 //Student project system modes
 //#define SYSMODE_OFDM
-//#define SYSMODE_LMS
+#define SYSMODE_LMS
 
 #if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
@@ -201,7 +201,7 @@ rate requirements. */
 #define UNITTEST_PASSES_LMS			(313)
 
 /** @brief Maximum tolerable deviation between reference and student functions */
-#define UNITTEST_TOL				(1.0e-3)
+#define UNITTEST_TOL				(1.0e-2)
 
 /** @brief Debug USART interface baud rate */
 #define DEBUG_USART_BAUDRATE		(921600ULL)
