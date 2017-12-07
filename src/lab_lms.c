@@ -167,7 +167,7 @@ void lab_lms(void){
 
 				//Plot result
 				char plottitle[] = "Logged LMS error output";
-				float axisdummy[] = {NAN, NAN, NAN, NAN};	//Auto-scale plot extents
+				float axisdummy[] = {NAN, NAN, 0, NAN};	//Auto-scale plot extents, except minimum error (force zero)
 				struct asciiplot_s dummyplot = {
 					.cols = PLOT_COLS,
 					.rows = PLOT_ROWS,
@@ -175,7 +175,7 @@ void lab_lms(void){
 					.ydata = lms_err_log,
 					.data_len = NUMEL(lms_err_log),
 					.xlabel = "Time since filter reset [s]",
-					.ylabel = "error",
+					.ylabel = "abs(error)",
 					.title = plottitle,
 					.axis = axisdummy,
 					.label_prec = 4
@@ -253,7 +253,7 @@ void lab_lms(void){
 		lms_err_buf_time  += (1.0f * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
 
 		//Add the first element of the error output to the logged error signal
-		lms_err_buf[lms_err_buf_idx] = lms_err[0];
+		lms_err_buf[lms_err_buf_idx] = fabsf(lms_err[0]);
 		lms_err_buf_idx = (lms_err_buf_idx+1) % NUMEL(lms_err_buf);	//Wrap err log when log is full
 	}
 
