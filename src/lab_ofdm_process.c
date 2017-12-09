@@ -196,6 +196,19 @@ void ofdm_modulate(float * pRe, float * pIm, float* pDst, float f , int length){
 		omega += inc;
 	}
 }
+
+void cnvt_cmplx_2_re_im( float * pCmplx, float * pRe, float * pIm, int length ){
+	/*
+	* Convert a complex signal (pCmplx) into two vectors. One vector with the real part (pRe) and
+	* one vector with the complex part (pIm). The length of the signal is length.
+	*/
+	int i;
+	for ( i = 0; i < length ;i++) {
+		pRe[i] = pCmplx[2*i];
+		pIm[i] = pCmplx[2*i+1];
+	}
+}
+
 void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int length ){
 	/*
 	* Demodulate a real signal (pSrc) into a complex signal (pRe and pPim)
@@ -211,22 +224,11 @@ void ofdm_demodulate(float * pSrc, float * pRe, float * pIm,  float f, int lengt
 	DO_OFDM_DEMODULATE();
 #else
 	/* TODO: Add code from here... */
-	
+
 	/* ...to here */
 #endif
 }
 
-void cnvt_cmplx_2_re_im( float * pCmplx, float * pRe, float * pIm, int length ){
-	/*
-	* Convert a complex signal (pCmplx) into two vectors. One vector with the real part (pRe) and
-	* one vector with the complex part (pIm). The length of the signal is length.
-	*/
-	int i;
-	for ( i = 0; i < length ;i++) {
-		pRe[i] = pCmplx[2*i];
-		pIm[i] = pCmplx[2*i+1];
-	}
-}
 void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 	/*
 	* Converts a complex signal represented as pRe + sqrt(-1) * pIm into an
@@ -237,36 +239,10 @@ void cnvt_re_im_2_cmplx( float * pRe, float * pIm, float * pCmplx, int length ){
 #include "../../secret_sauce.h"
 		DO_OFDM_RE_IM_2_CMPLX();
 #else
-		/* TODO: Add code from here... */
-		
-		/* ...to here */
+	/* TODO: Add code from here... */
+
+	/* ...to here */
 #endif
-}
-void concat(float * pSrc1, float * pSrc2, float * pDst, int length){
-	/*
-	* Concatenate vectors pSrc1[] and pSrc2[] and place result in
-	* pDst[]. Length of pSrc1 and pSrc2 are assumed to be length and it is
-	* required that pDst has length 2*length
-	*/
-	int i,ii=0;
-	for (i=0; i<length; i++){
-		pDst[ii++] = pSrc1[i];
-	}
-	for (i=0; i<length; i++){
-		pDst[ii++] = pSrc2[i];
-	}
-}
-void split(float * pSrc, float * pDst1, float * pDst2, int length){
-	/*
-	* Split vecor pSrc into two vectors pDst1 and pDst2 each with a length length
-	*/
-	int i,ii=0;
-	for (i=0; i<length; i++){
-		pDst1[i] = pSrc[ii++];
-	}
-	for (i=0; i<length; i++){
-		pDst2[i] = pSrc[ii++];
-	}
 }
 
 void ofdm_conj_equalize(float * prxMes, float * prxPilot,
@@ -313,10 +289,36 @@ void ofdm_conj_equalize(float * prxMes, float * prxPilot,
 	* vector of up to length elements. */
 	
 	/* TODO: Add code from here...*/
-	
-	
+
 	/* ...to here */
 #endif
+}
+
+void concat(float * pSrc1, float * pSrc2, float * pDst, int length){
+	/*
+	* Concatenate vectors pSrc1[] and pSrc2[] and place result in
+	* pDst[]. Length of pSrc1 and pSrc2 are assumed to be length and it is
+	* required that pDst has length 2*length
+	*/
+	int i,ii=0;
+	for (i=0; i<length; i++){
+		pDst[ii++] = pSrc1[i];
+	}
+	for (i=0; i<length; i++){
+		pDst[ii++] = pSrc2[i];
+	}
+}
+void split(float * pSrc, float * pDst1, float * pDst2, int length){
+	/*
+	* Split vecor pSrc into two vectors pDst1 and pDst2 each with a length length
+	*/
+	int i,ii=0;
+	for (i=0; i<length; i++){
+		pDst1[i] = pSrc[ii++];
+	}
+	for (i=0; i<length; i++){
+		pDst2[i] = pSrc[ii++];
+	}
 }
 
 void ofdm_soft_symb(float * prxMes, float * hhat_conj, float * soft_symb, int length){

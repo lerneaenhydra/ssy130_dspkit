@@ -27,7 +27,6 @@ float lms_err_buf[LAB_LMS_ERRLOG_LEN_s * AUDIO_SAMPLE_RATE / AUDIO_BLOCKSIZE];
 size_t lms_err_buf_idx;
 float lms_err_buf_time;
 float lms_mu = LAB_LMS_MU_INIT;
-char pname[] = "h";
 
 // enum type for different modes of operation
 enum lms_modes {lms_updt, lms_enbl, lms_dsbl} lms_mode;
@@ -114,8 +113,8 @@ void lab_lms(void){
 			}
 			break;
 		case 'm':
-			printf("Filter coefficiencts in reversed order (use e.g. 'flipud(h)' in Matlab to restore actual order)");
-			print_vector_f(pname, lms_coeffs, NUMEL(lms_coeffs));
+			printf("Filter coefficients in reversed order (use e.g. 'flipud(h)' in Matlab to restore actual order)\n");
+			print_vector_f("h_reversedOrder", lms_coeffs, NUMEL(lms_coeffs));
 			break;
 		case 'h':
 			{
@@ -156,10 +155,7 @@ void lab_lms(void){
 				//Generate LMS log time array
 				float errlog_time[NUMEL(lms_err_buf)];
 				errlog_time[0] = lms_err_buf_time - (1.0f * NUMEL(lms_err_buf) * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
-				//Saturate time axis to positive values
-				if(errlog_time[0] < 0){
-					errlog_time[0] = 0;
-				}
+
 				size_t i;
 				for(i = 0; i < NUMEL(errlog_time) - 1; i++){
 					errlog_time[i+1] = errlog_time[i] + (1.0f * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
@@ -311,6 +307,7 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * h = [lms_coeffs[lms_taps-1], ..., lms_coeffs[1], lms_coeffs[0]]
 	 * 
 	 * lms_state		The most recent (block_size + lms_taps - 1) elements of y
+	 * 
 	 * The code that updates LMS state with the new elements in y is already
 	 * implemented for you
 	 * 
@@ -329,10 +326,18 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	#include "../../secret_sauce.h"
 	DO_LMS();
 #else
-	/* TODO: Add code from here...*/
-	
-	
-	/* ...to here */
+	/* TODO: Add code from here...
+	 *
+	 * doing block_size lms update iterations, i.e. something like:
+	 * 
+	 * int n;
+	 * for(n <range 0 - block_size>){ 		   //Which order should we loop n over? [0, 1, 2, ..., block_size]? [block_size, ..., 1, 0]?
+	 *   float * y = &lms_state[<some index>]; //See documentation above for how to extract the relevant section from the long vector lms_state to create "y"
+	 *   xhat[n] = lms_coeffs * y;             //here '*' implies the dot product. Either use arm_dot_prod_f32 or use a loop to compute xhat[n]
+	 *   e[n] = x[n] - xhat[n];                //e[n] is a scalar, so do we need to do any looping here?
+	 *   lms_coeffs += 2 * mu * y * e[n];      //Use some type of loop to update the vector lms_coeffs with the vector y multiplied by scalars 2, mu, e[n].
+	 * }
+	 * ...to here */
 #endif
 
 	/* Update lms state, ensure the lms_taps-1 first values correspond to the

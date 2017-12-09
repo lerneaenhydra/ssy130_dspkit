@@ -67,7 +67,7 @@ const float dist_sig[256]={-0.134159723, -0.0521249716, -0.067614791,
 0.334847754, 0.300258799, -0.175916745, 0.250607241};
 
 /** @brief Channel response for unit-testing LMS algorithm */
-float h_sim_int[8] = {10, -8, 6, -4, 2, -1, 1, 0};
+float h_sim_int[] = {10, -8, 6, -4, 2, -1, 1};
 
 /** @brief Reference input signal to pass through simualted channel h, used for 
 unit-testing LMS filter */

@@ -200,8 +200,11 @@ rate requirements. */
 /** @brief Number of LMS iterations to apply when testing the LMS functions */
 #define UNITTEST_PASSES_LMS			(313)
 
-/** @brief Maximum tolerable deviation between reference and student functions */
-#define UNITTEST_TOL				(1.0e-2)
+/** @brief Maximum tolerable relative deviation between reference and student functions */
+#define UNITTEST_RELTOL				(1.0e-4)
+
+/** @brief Maximum tolerable absolute deviation between reference and student functions */
+#define UNITTEST_ABSTOL             (1.0e-5)
 
 /** @brief Debug USART interface baud rate */
 #define DEBUG_USART_BAUDRATE		(921600ULL)
