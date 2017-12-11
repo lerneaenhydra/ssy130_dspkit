@@ -1,6 +1,7 @@
 #include "sources.h"
 #include "config.h"
 #include <math.h>
+#include <stdint.h>
 #include "backend/hw/headphone.h"
 #include "backend/printfn/printfn.h"
 #include "util.h"
@@ -103,15 +104,14 @@ uint_fast32_t waveform_idx = 0;
 uint_fast32_t test_y_idx = 0;
 uint_fast32_t test_x_idx = 0;
 
-/** @brief The current angles for sine/cosine sources */
-float sin_ang = 0;
-float cos_ang = 0;
+/** @brief The current angle for sine/cosine sources */
+float trig_ang = 0;
 
 /** @brief The current frequency to use for sine/cosine outputs, default to 1kHz */
 float trig_freq = 1e3;
 
-int16_t const * waveform_ptr = waveform;
-size_t    waveform_N = NUMEL(waveform);
+const int16_t * waveform_ptr = waveform;
+size_t waveform_N = NUMEL(waveform);
 
 #define MSG "\n\n  .-\" +' \"-.    __,  ,___,\n /.'.'A_'*`.\\  (--|__| _,,_ ,_ \n|:.*'/\\-\\. ':|   _|  |(_||_)|_)\\/\n|:.'.||\"|.'*:|  (        |  | _/\n \\:~^~^~^~^:/          __,  ,___,\n  /`-....-'\\          (--|__| _ |' _| _,   ,\n /          \\           _|  |(_)||(_|(_|\\//_)\n `-.,____,.-'          (               _/\n\n" DEBUG_LINESEP
 void blocks_sources_init(void){
@@ -153,31 +153,25 @@ void blocks_sources_trig_setfreq(float frequency){
 
 void blocks_sources_sin(float * sample_block){
 	int_fast32_t i;
-	float ang = sin_ang;
+	float ang = trig_ang;
 	volatile float freq;	//Declare volatile to ensure the math operations are not re-ordered into the atomic block
 	ATOMIC(freq = trig_freq);
 	const float delta_ang = M_TWOPI * freq / AUDIO_SAMPLE_RATE;
 	for(i = 0; i < AUDIO_BLOCKSIZE; i++){
 		sample_block[i] = arm_sin_f32(ang);
 		ang += delta_ang;
-		if(sin_ang > M_TWOPI){
-			sin_ang -= M_TWOPI;
-		}
 	}
 }
 
 void blocks_sources_cos(float * sample_block){
 	int_fast32_t i;
-	float ang = sin_ang;
+	float ang = trig_ang;
 	volatile float freq;	//Declare volatile to ensure the math operations are not re-ordered into the atomic block
 	ATOMIC(freq = trig_freq);
 	const float delta_ang = M_TWOPI * freq / AUDIO_SAMPLE_RATE;
 	for(i = 0; i < AUDIO_BLOCKSIZE; i++){
 		sample_block[i] = arm_cos_f32(ang);
 		ang += delta_ang;
-		if(sin_ang > M_TWOPI){
-			sin_ang -= M_TWOPI;
-		}
 	}
 }
 
@@ -230,6 +224,12 @@ void blocks_sources_update(void){
 	volatile float freq;	//Declare volatile to ensure the math operations are not re-ordered into the atomic block
 	ATOMIC(freq = trig_freq);
 	const float delta_ang = M_TWOPI * freq / AUDIO_SAMPLE_RATE;
-	sin_ang += delta_ang * AUDIO_BLOCKSIZE;
-	cos_ang += delta_ang * AUDIO_BLOCKSIZE;
+ 	trig_ang += delta_ang * AUDIO_BLOCKSIZE;
+	//Keep trig_ang in range [0, 2*pi] to keep float epsilon small
+	//For reasonable frequencies and block-sizes, repeated subtraction is
+	//cheaper than using a divide and multiply operation (and has clearer
+	//intent).
+	while(trig_ang > M_TWOPI){
+		trig_ang -= M_TWOPI;
+	}
 }
