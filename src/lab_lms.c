@@ -43,9 +43,9 @@ static void lab_lms_reset_errlog(void){
 #define PRINT_HELPMSG() 																								\
 		printf("Usage guide;\n"																							\
 			"Press the following keys to change the system behavior\n"													\
-			"\t'd' - LMS filtering disabled, raw microphone data output to right speaker. Initial mode.\n"				\
-			"\t'f' - LMS filtering applied, update disabled (h held constant), error signal output to right speaker\n"	\
-			"\t'u' - LMS filtering applied with filter update, error signal output to right speaker\n"					\
+			"\t'd' - LMS filtering disabled, raw microphone data output to left speaker. Initial mode.\n"				\
+			"\t'f' - LMS filtering applied, update disabled (h held constant), error signal output to left speaker\n"	\
+			"\t'u' - LMS filtering applied with filter update, error signal output to left speaker\n"					\
 			"\t't' - Toggle disturbance source between cosine signal and wide band noise\n"								\
 			"\t'r' - Reset filter coefficients to 0 and empty logged error output\n"									\
 			"\t'1' - Increase step size mu\n"																			\
@@ -208,12 +208,12 @@ void lab_lms(void){
 	// Set amplitude of disturbance
 	arm_scale_f32(distdata, 0.2f, distdata, AUDIO_BLOCKSIZE);
 	
-	// Send desired net signal to left output
+	// Send desired net signal to right output
 	if (signal_mode == signal_on){
 		arm_add_f32(distdata,signaldata,outdata,AUDIO_BLOCKSIZE); // add signal and noise
-		blocks_sinks_leftout(outdata); // Send to left channel
+		blocks_sinks_rightout(outdata);
 	}else{
-		blocks_sinks_leftout(distdata); // Send to left channel
+		blocks_sinks_rightout(distdata);
 	}
 	
 	//Do selected filtering operation
@@ -226,8 +226,8 @@ void lab_lms(void){
 	switch(lms_mode){
 		case lms_dsbl:
 		default:
-			//LMS disabled, output mic data to right output
-			blocks_sinks_rightout(lms_mic);
+			//LMS disabled, output mic data to left output
+			blocks_sinks_leftout(lms_mic);
 			break;
 		case lms_enbl:
 			//LMS enabled, zero stepsize
@@ -244,7 +244,7 @@ void lab_lms(void){
 	if(do_lms){
 		my_lms(distdata, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, net_mu, lms_coeffs, lms_state, LAB_LMS_TAPS_ONLINE);
 		
-		blocks_sinks_rightout(lms_err); // Send cleaned signal to right channel
+		blocks_sinks_leftout(lms_err); // Send cleaned signal to left channel
 		
 		lms_err_buf_time  += (1.0f * AUDIO_BLOCKSIZE) / AUDIO_SAMPLE_RATE;
 
