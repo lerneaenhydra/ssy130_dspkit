@@ -198,7 +198,7 @@ rate requirements. */
 #define UNITTEST_PASSES_OFDM		(150)
 
 /** @brief Number of LMS iterations to apply when testing the LMS functions */
-#define UNITTEST_PASSES_LMS			(313)
+#define UNITTEST_PASSES_LMS			(4000/AUDIO_BLOCKSIZE)
 
 /** @brief Maximum tolerable relative deviation between reference and student functions */
 #define UNITTEST_RELTOL				(1.0e-4)

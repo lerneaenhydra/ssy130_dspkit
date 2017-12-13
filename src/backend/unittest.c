@@ -22,8 +22,8 @@ struct eps_res_s {
 /** @brief Displays data on maximum relative/absolute deviation */
 static void print_epsmsg(struct eps_res_s * res);
 
-/** @brief Manages the result of a given deviation result */
-static void handle_epsres(struct eps_res_s * res);
+/** @brief Manages the result of a given deviation result, returning false if test failed */
+static bool handle_epsres(struct eps_res_s * res);
 
 /** @brief Generates a uniformly selected pseudorandom float in range [lb, ub] */
 static float randuf(float lb, float ub);
@@ -131,7 +131,8 @@ static void print_epsmsg(struct eps_res_s * res){
 	printf("Your function may exceed one, but not both, thresholds\n");
 }
 
-static void handle_epsres(struct eps_res_s * res){
+static bool handle_epsres(struct eps_res_s * res){
+	bool retval = true;
 	print_epsmsg(res);
 	if(res->pass){
 		if(res->releps == 0 && res->abseps == 0){
@@ -141,8 +142,9 @@ static void handle_epsres(struct eps_res_s * res){
 		}	
 	}else{
 		printf(FAIL_STR"\nFunction returns values exceeding tolerance.\nYour code is incorrect and must be resolved.\nExecution halted, rework function to allow execution to continue.\n");
-        for(;;){};  //Stop execution
+		retval = false;
 	}
+	return retval;
 }
 	
 void unittest_run(void){
@@ -151,10 +153,9 @@ void unittest_run(void){
 	(void) vec_releps;
 	(void) handle_epsres;
 	(void) update_epsres;
-
-	struct eps_res_s res;
-	init_epsres(&res);
 	
+	bool pass = true;
+
 	seed = board_get_randseed();
 	printf("Testing functions with reference input parameters\n");
 #if defined(SYSMODE_LMS)
@@ -188,11 +189,16 @@ void unittest_run(void){
 		lm(y, x, xhat_ref, e_ref, AUDIO_BLOCKSIZE, LAB_LMS_MU_INIT, lms_coeffs_ref, lms_state_ref, lms_taps);
 	}
 
-	/* We only need to compare how the LMS filter coeffcients differ
-	* between the reference and test function. Looking at the differences
-	* in lms_state, e, and xhat are not very useful due to jitter
-	* amplfication. */
-	update_epsres(lms_coeffs_ref, lms_coeffs_test, NUMEL(lms_coeffs_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
+	/* Compare all filter outputs:  lms_coeffs, xhat, e */
+
+	struct eps_res_s res_h, res_x, res_e;
+	init_epsres(&res_h);
+	init_epsres(&res_x);
+	init_epsres(&res_e);
+
+	update_epsres(lms_coeffs_ref, lms_coeffs_test, NUMEL(lms_coeffs_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res_h);
+	update_epsres(xhat_ref, xhat_test, NUMEL(xhat_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res_x);
+	update_epsres(e_ref, e_test, NUMEL(e_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res_e);
 	
 	//Finally, create the estimated channel by reversing the order of the LMS filter coefficients
 	float h_est_test[NUMEL(lms_coeffs_test)], h_est_ref[NUMEL(lms_coeffs_test)];
@@ -230,12 +236,24 @@ void unittest_run(void){
 	}
 	printf("\n\n");
 	
-	handle_epsres(&res);
+	printf("Comparing generated h_hat:\n");
+	pass &= handle_epsres(&res_h);
+	printf("\n\n");
+	printf("Comparing generated x_hat:\n");
+	pass &= handle_epsres(&res_x);
+	printf("\n\n");
+	printf("Comparing generated e:\n");
+	pass &= handle_epsres(&res_e);
+	printf("\n\n");
 	
 #elif defined(SYSMODE_OFDM)
-	//Random test vectors will give sufficient coverage for this function
+
+	struct eps_res_s res;
+	init_epsres(&res);
+
+	//Random test vectors will (hopefully) give sufficient coverage for this function
 	int i;
-	
+
 	printf("\nTesting 'ofdm_demodulate(...)'\n");
 	for(i = 1; i <= UNITTEST_PASSES_OFDM; i++){
 		float f = randuf(-1e3, 1e3);
@@ -248,7 +266,7 @@ void unittest_run(void){
 		update_epsres(re_ref, re_test, NUMEL(re_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
 		update_epsres(im_ref, im_test, NUMEL(im_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
 	}
-	handle_epsres(&res);
+	pass &= handle_epsres(&res);
 	
 	printf("\nTesting 'cnvt_re_im_2_cmplx(...)'\n");
 	init_epsres(&res);
@@ -261,7 +279,7 @@ void unittest_run(void){
 		cnvt_re_im_2_cmplx(re, im, c_test, NUMEL(re));
 		update_epsres(c_ref, c_test, NUMEL(c_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
 	}
-	handle_epsres(&res);
+	pass &= handle_epsres(&res);
 	
 	printf("\nTesting 'ofdm_conj_equalize(...)'\n");
 	init_epsres(&res);
@@ -277,9 +295,16 @@ void unittest_run(void){
 		update_epsres(pEqualized_ref, pEqualized_test, NUMEL(pEqualized_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
 		update_epsres(hhat_conj_ref, hhat_conj_test, NUMEL(hhat_conj_ref), UNITTEST_RELTOL, UNITTEST_ABSTOL, &res);
 	}
-	handle_epsres(&res);
+
+	pass &= handle_epsres(&res);
+
 #else
 	printf("No unit testing needed for selected project configuration.\n");
 #endif
 	printf("Testing complete!\n" DEBUG_LINESEP);
+
+	//Halt on failure
+	if(!pass){
+		for(;;){};
+	}
 }
