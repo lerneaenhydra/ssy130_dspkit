@@ -292,16 +292,16 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * ----------------------------------------
 	 * 
 	 * The following variables are accessible by you:
-	 * block_size		length of the following vectors;
-	 * 		y			the block-size'th most recent input signals (**you won't need to use this variable, see lms_state**)
-	 * 		x			vector of "desired" signal
-	 * 		xhat		vector of filter output
-	 * 		e			vector of error output
+	 * block_size		input: length of the following vectors;
+	 * 		y			input: the block-size'th most recent input signals (**you won't need to use this variable, see lms_state**)
+	 * 		x			input: vector of "desired" signal
+	 * 		xhat		output: vector of filter output
+	 * 		e			output: vector of error output
 	 * 
-	 * lms_mu			step size of the LMS filter update
+	 * lms_mu			input: step size of the LMS filter update
 	 * 
-	 * lms_coeffs		vector of filter coefficients (i.e. h) **STORED IN REVERSE ORDER**
-	 * lms_taps			the number of elements in lms_coeffs (i.e. filter length)
+	 * lms_coeffs		input/output: vector of filter coefficients (i.e. h) **STORED IN REVERSE ORDER**
+	 * lms_taps			input: the number of elements in lms_coeffs (i.e. filter length)
 	 * 
 	 * By reverse order we mean that the true filter is given as
 	 * h = [lms_coeffs[lms_taps-1], ..., lms_coeffs[1], lms_coeffs[0]]
@@ -313,7 +313,6 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	 * 
 	 * Note: All signal vectors orderd with oldest element first, i.e.
 	 * x = [x_(n-10), x_(n-9), ..., x_(n))]
-	 * 
 	 */
 
 	/* Copy new input into lms_state, ordered as
