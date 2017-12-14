@@ -20,6 +20,12 @@
  * Log will record over this period after resetting the LMS filter coefficients */
 #define 	LAB_LMS_ERRLOG_LEN_s	(20)
 
+/** @brief Decimation factor for colored gaussian noise
+ * Gaussian noise source is bandwidth-limited to
+ * AUDIO_SAMPLE_RATE/LAB_LMS_CGN_FAC
+ * This also reduces the computational burden (yay!) */
+#define 	LAB_LMS_CGN_FAC			(4)
+
 // Stateful variables for the LMS lab
 float lms_coeffs[LAB_LMS_TAPS_ONLINE];
 float lms_state[LAB_LMS_TAPS_ONLINE + AUDIO_BLOCKSIZE - 1];
@@ -27,6 +33,7 @@ float lms_err_buf[LAB_LMS_ERRLOG_LEN_s * AUDIO_SAMPLE_RATE / AUDIO_BLOCKSIZE];
 size_t lms_err_buf_idx;
 float lms_err_buf_time;
 float lms_mu = LAB_LMS_MU_INIT;
+uint_fast32_t seed;	//PRNG seed for gaussian noise generator
 
 // enum type for different modes of operation
 enum lms_modes {lms_updt, lms_enbl, lms_dsbl} lms_mode;
@@ -64,6 +71,7 @@ void lab_lms_init(void){
 	lms_mode = lms_dsbl; // start with disabled mode
 	dist_src = noise_src; // start with wide band noise
 	signal_mode = signal_on;
+	seed = util_get_seed();
 	PRINT_HELPMSG();
 	BUILD_BUG_ON(LAB_LMS_TAPS_ONLINE > AUDIO_BLOCKSIZE);	//LMS state update assumes one blocksize covers all taps
 }
@@ -200,7 +208,23 @@ void lab_lms(void){
 	
 	// Load desired disturbance signal
 	if (dist_src == noise_src){
-		blocks_sources_disturbance(distdata);
+		//Generate colored gaussian noise by low-pass filtering white guassian noise
+		
+		/* As it's expensive to generate gaussian samples and we want a
+		 * low-passed gaussian process, simply create a gaussian process at
+		 * low sample rate and apply ZOH to up-sample to the globak sample rate */
+		float rawdist[AUDIO_BLOCKSIZE/LAB_LMS_CGN_FAC];
+		util_randN(0, 0.5, &seed, rawdist, NUMEL(rawdist));
+
+		//Upsample to the global sample rate
+		size_t i;
+		for(i = 0; i < NUMEL(rawdist); i++){
+			arm_fill_f32(rawdist[i], &distdata[i*LAB_LMS_CGN_FAC], LAB_LMS_CGN_FAC);
+		}
+
+		//blocks_sources_disturbance(distdata);
+		#warning remove disturbance waveform?
+
 	} else { // cosine as disturbance
 		blocks_sources_cos(distdata);
 	};
