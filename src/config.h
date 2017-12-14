@@ -240,7 +240,8 @@ rate requirements. */
 DEBUG_LINESEP
 
 /** @brief Error message to print on a processing time overrun */
-#define DEBUG_TIME_OVERFLOWMSG		"\nERROR! Execution time exceeded maximum permissible time per sample! Halting =(\n"
+#define DEBUG_TIME_OVERFLOWMSG		"\nERROR! Execution time exceeded maximum permissible time per sample! Halting =(\n"\
+                                    "This means your code took too long to execute. Do something to make it faster!\n"
 
 /** @brief Error message to print on a microphone buffer overflow */
 #define DEBUG_MICBUG_OVERFLOWMSG	"\nERROR! Microphone input buffer overflow! Halting =(\n"
