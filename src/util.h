@@ -5,6 +5,7 @@
 #define UTIL_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define R_RAND_MAX	0xFFFF
 
@@ -35,5 +36,13 @@ uint_fast16_t util_rand_r(uint_fast32_t * const seed);
 
 /** @brief Outputs a random integer in the range [minval,maxval], given a random seed location */
 uint_fast16_t util_rand_range(uint_fast16_t minval, uint_fast16_t maxval, uint_fast32_t * const seed);
+
+/** @brief Fills a vector with samples from the standard distribution.
+ * @param mu    Mean
+ * @param sigma Standard deviation
+ * @param seed  Pointer to seed
+ * @param res   Pointer to result array
+ * @param len   Number of elements in result vector */
+void util_randN(const float mu, const float sigma, uint_fast32_t * const seed, float * res, size_t len);
 
 #endif /* UTIL_H_ */

@@ -1,4 +1,5 @@
 #include "util.h"
+#include <math.h>
 #include "backend/printfn/printfn.h"
 #include "backend/hw/board.h"
 
@@ -42,6 +43,41 @@ uint_fast16_t util_rand_range(uint_fast16_t minval, uint_fast16_t maxval, uint_f
 	}else{
 		//Otherwise, try again...
 		return util_rand_range(minval, maxval, seed);
+	}
+}
+
+void util_randN(const float mu, const float sigma, uint_fast32_t * const seed, float * res, size_t len){
+	//Use the marsaglia polar method
+	size_t i = 0;
+	//Loop continuously, will break when done
+	for(;;){
+		float s, u, v;
+		do{
+			//Generate uniformly sampled variables in range [-1, 1]
+			const uint_fast16_t ui = util_rand_r(seed);
+			const uint_fast16_t vi = util_rand_r(seed);
+			u = ui * (1.0f / R_RAND_MAX) * 2.0f - 1.0f; 	
+			v = vi * (1.0f / R_RAND_MAX) * 2.0f - 1.0f;
+
+			//Check norm of [u,v]
+			s = u * u + v * v;
+		}while(s >= 1.0f || s == 0.0f);
+
+
+		//Generate two normally distributed values
+		s = sqrtf(-2.0f * logf(s) / s);
+		float r1 = mu + sigma * u * s;
+		float r2 = mu + sigma * v * s;
+
+		//Write results as needed
+		res[i++] = r1;
+		if(i >= len){
+			return;
+		}
+		res[i++] = r2;
+		if(i >= len){
+			return;
+		}
 	}
 }
 
