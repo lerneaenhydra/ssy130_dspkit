@@ -212,7 +212,7 @@ void lab_lms(void){
 		
 		/* As it's expensive to generate gaussian samples and we want a
 		 * low-passed gaussian process, simply create a gaussian process at
-		 * low sample rate and apply ZOH to up-sample to the globak sample rate */
+		 * low sample rate and apply ZOH to up-sample to the global sample rate */
 		float rawdist[AUDIO_BLOCKSIZE/LAB_LMS_CGN_FAC];
 		util_randN(0, 0.5, &seed, rawdist, NUMEL(rawdist));
 
