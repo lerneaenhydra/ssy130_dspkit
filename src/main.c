@@ -52,6 +52,8 @@ int main(void){
 	example_test3_init();
 #elif defined(SYSMODE_TEST4)
 	example_test4_init();
+#elif defined(SYSMODE_TEST5)
+	example_test5_init();
 #elif defined(SYSMODE_LMS)
 	lab_lms_init();
 #elif defined(SYSMODE_OFDM)
@@ -91,6 +93,8 @@ void main_audio_callback(void){
 	example_test3();
 #elif defined(SYSMODE_TEST4)
 	example_test4();
+#elif defined(SYSMODE_TEST5)
+	example_test5();
 #elif defined(SYSMODE_LMS)
 	lab_lms();
 #elif defined(SYSMODE_OFDM)

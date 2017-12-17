@@ -22,6 +22,10 @@ void example_test3(void);
 void example_test4_init(void);
 void example_test4(void);
 void example_test4_btnpress(void);	//!<- Function to call to trigger a transmission
+#elif defined(SYSMODE_TEST4)
+// Function pair for the time-domain frequency shift example
+void example_test5_init(void);
+void example_test5(void);
 #elif defined(SYSMODE_RADAR)
 // Function pair for the pulse-radar example
 #define RADAR_V_PROP		(343)					//Speed of propogation in channel (i.e. for this example, the speed of sound in the air between speaker/microphone) [m/s]

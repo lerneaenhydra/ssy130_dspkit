@@ -28,6 +28,11 @@
  * bitstream on the left channel when the button is pressed and implement a ML
  * receiver on the microphone input, displaying received characters on the
  * terminal.
+ * SYSMODE_TEST5; will compile the project to apply a frequency shift to the
+ * microphone input by multiplying the recieved signal with a sinusoid.
+ * The frequency-shifted output is played back to the left speaker, the right
+ * speaker plays back the microphone data directly. Test bringing either speaker
+ * close to the microphone, you'll see that only one gives rise to a feedback loop!
  * SYSMODE_RADAR; will compile the project for a pulse radar (i.e.
  * time-of-flight) distance-measurement example.
  * (See https://en.wikipedia.org/wiki/Radar#Transit_time)
@@ -57,6 +62,7 @@
 //#define SYSMODE_TEST2
 //#define SYSMODE_TEST3
 //#define SYSMODE_TEST4
+//#define SYSMODE_TEST5
 //#define SYSMODE_RADAR
 //#define SYSMODE_FFT
 
@@ -64,7 +70,7 @@
 //#define SYSMODE_OFDM
 //#define SYSMODE_LMS
 
-#if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
+#if (1 != defined(SYSMODE_TEST1) + defined(SYSMODE_TEST2) + defined(SYSMODE_TEST3) + defined(SYSMODE_TEST4) + defined(SYSMODE_TEST5) + defined(SYSMODE_LMS) + defined(SYSMODE_OFDM) + defined(SYSMODE_RADAR) + defined(SYSMODE_FFT))
 #error Exactly one operation mode must be selected!
 #endif
 
@@ -96,7 +102,7 @@
  * 	48kHz approx. 60% CPU time available for application-level code
  * 	24kHz approx. 80% CPU time available for application-level code
  * 	16kHz approx. 90% CPU time available for application-level code */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || || defined(SYSMODE_TEST5)
 /** @brief Sample-rate for examples that are relatively computationally lightweight */
 #define AUDIO_SAMPLE_RATE 			(48000)
 #elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT)
@@ -118,7 +124,7 @@ rate requirements. */
  * task-switching overhead. Reasonable values range from 64 to 1024 with 256
  * being a reasonable default.
  * For speed, this must be a power of two. */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_TEST5)
 /** @brief Arbitrarily select a 256-sample block size */
 #define AUDIO_BLOCKSIZE				(256)
 #elif defined(SYSMODE_FFT)

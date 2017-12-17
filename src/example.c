@@ -631,6 +631,17 @@ void example_test4_btnpress(void){
 #endif
 
 
+#if defined(SYSMODE_TEST5)
+void example_test5_init(void){
+	//TODO: initialize
+}
+
+void example_test5(void){
+	//TODO: do frequency-shift, suppress carrier
+}
+#endif
+
+
 #if defined(SYSMODE_RADAR)
 #define REL_CHAR	'z'					//Character to enter to set current channel distance to zero
 #define RESET_CHAR	'r'					//Character to reset the relative channel distance to zero
