@@ -73,7 +73,6 @@ void lab_lms_init(void){
 	signal_mode = signal_on;
 	seed = util_get_seed();
 	PRINT_HELPMSG();
-	BUILD_BUG_ON(LAB_LMS_TAPS_ONLINE > AUDIO_BLOCKSIZE);	//LMS state update assumes one blocksize covers all taps
 }
 
 void lab_lms(void){
@@ -208,23 +207,8 @@ void lab_lms(void){
 	
 	// Load desired disturbance signal
 	if (dist_src == noise_src){
-		//Generate colored gaussian noise by low-pass filtering white guassian noise
-		
-		/* As it's expensive to generate gaussian samples and we want a
-		 * low-passed gaussian process, simply create a gaussian process at
-		 * low sample rate and apply ZOH to up-sample to the global sample rate */
-		float rawdist[AUDIO_BLOCKSIZE/LAB_LMS_CGN_FAC];
-		util_randN(0, 0.5, &seed, rawdist, NUMEL(rawdist));
-
-		//Upsample to the global sample rate
-		size_t i;
-		for(i = 0; i < NUMEL(rawdist); i++){
-			arm_fill_f32(rawdist[i], &distdata[i*LAB_LMS_CGN_FAC], LAB_LMS_CGN_FAC);
-		}
-
-		//blocks_sources_disturbance(distdata);
-		#warning remove disturbance waveform?
-
+		//Get wide-band disturbance samples
+		blocks_sources_disturbance(distdata);
 	} else { // cosine as disturbance
 		blocks_sources_cos(distdata);
 	};
@@ -366,6 +350,6 @@ void my_lms(float * y, float * x, float * xhat, float * e, int block_size,
 	/* Update lms state, ensure the lms_taps-1 first values correspond to the
 	* lms_taps-1 last values of y, i.e.
 	* [ y[end - lms_taps - 1], ..., y[end], ... <don't care values, will be filled with new y on next call> ...]
-	 */
+	*/
 	arm_copy_f32( &y[block_size - (lms_taps-1)], lms_state, lms_taps-1);
 };

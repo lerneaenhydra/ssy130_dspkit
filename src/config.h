@@ -102,7 +102,7 @@
  * 	48kHz approx. 60% CPU time available for application-level code
  * 	24kHz approx. 80% CPU time available for application-level code
  * 	16kHz approx. 90% CPU time available for application-level code */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || || defined(SYSMODE_TEST5)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_TEST5)
 /** @brief Sample-rate for examples that are relatively computationally lightweight */
 #define AUDIO_SAMPLE_RATE 			(48000)
 #elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT)
@@ -145,8 +145,8 @@ rate requirements. */
  * within one block, setting a lower bound to the value */
 #define AUDIO_BLOCKSIZE				(256)
 #elif defined(SYSMODE_LMS)
-/** @brief Arbitrarily select a 256-sample block size for the LMS lab. This value is not particularly critical */
-#define AUDIO_BLOCKSIZE				(256)
+/** @brief Select a slightly larger blocksize for the LMS lab to have time for generating plots */
+#define AUDIO_BLOCKSIZE				(512)
 #elif defined(SYSMODE_OFDM)
 /** @brief Arbitrarily select a large block size as this gives us a longer time
  * to perform signal processing calculations before the microphone/output DMA
