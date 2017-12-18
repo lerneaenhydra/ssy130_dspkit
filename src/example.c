@@ -817,14 +817,11 @@ void example_test5(void){
 	//Send the waveform data to the left output and the microphone data to the right output without any processing
 	if(processing_enbl){
 		blocks_sinks_leftout(filt_data);
+		blocks_sinks_rightout(filt_data);
 	}else{
 		blocks_sinks_leftout(inpdata);
+		blocks_sinks_rightout(inpdata);
 	}
-	
-	//Send all-zero output to unused speaker
-	float zeros[AUDIO_BLOCKSIZE];
-	blocks_sources_zeros(zeros);
-	blocks_sinks_rightout(zeros);	//Send input data directly to right speaker
 }
 #endif
 
