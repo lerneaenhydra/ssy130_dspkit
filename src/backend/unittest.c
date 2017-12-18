@@ -153,6 +153,7 @@ void unittest_run(void){
 	(void) vec_releps;
 	(void) handle_epsres;
 	(void) update_epsres;
+	(void) init_epsres;
 	
 	bool pass = true;
 
