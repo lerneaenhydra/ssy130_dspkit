@@ -105,15 +105,14 @@
 #if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
 /** @brief Sample-rate for examples that are relatively computationally lightweight */
 #define AUDIO_SAMPLE_RATE 			(48000)
-#elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT)
+#elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT) || defined(SYSMODE_TEST5)
 /** @brief Sample-rate for examples that are relatively computationally heavy */
 #define AUDIO_SAMPLE_RATE			(24000)
-#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM)  || defined(SYSMODE_TEST5)
+#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM)
 /** @brief For test 4, the sample rate must be a power of two in order to
  * generate a sinusoid that perfectly fits in AUDIO_BLOCKTIME. For the LMS and 
 OFDM labs lots of computational time is needed and we don't have any real sample 
-rate requirements. For test 5 a low sample-rate is good as the high-pass filter
-has a fairly low relative cutoff frequency */
+rate requirements. */
 #define AUDIO_SAMPLE_RATE			(16000)
 #else
 #error Invalid system mode selected
@@ -125,7 +124,7 @@ has a fairly low relative cutoff frequency */
  * task-switching overhead. Reasonable values range from 64 to 1024 with 256
  * being a reasonable default.
  * For speed, this must be a power of two. */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_TEST5)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
 /** @brief Arbitrarily select a 256-sample block size */
 #define AUDIO_BLOCKSIZE				(256)
 #elif defined(SYSMODE_FFT)
@@ -148,7 +147,7 @@ has a fairly low relative cutoff frequency */
 #elif defined(SYSMODE_LMS)
 /** @brief Select a slightly larger blocksize for the LMS lab to have time for generating plots */
 #define AUDIO_BLOCKSIZE				(512)
-#elif defined(SYSMODE_OFDM)
+#elif defined(SYSMODE_OFDM) || defined(SYSMODE_TEST5)
 /** @brief Arbitrarily select a large block size as this gives us a longer time
  * to perform signal processing calculations before the microphone/output DMA
  * buffers need to be handled */
