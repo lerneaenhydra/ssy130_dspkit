@@ -102,17 +102,18 @@
  * 	48kHz approx. 60% CPU time available for application-level code
  * 	24kHz approx. 80% CPU time available for application-level code
  * 	16kHz approx. 90% CPU time available for application-level code */
-#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2) || defined(SYSMODE_TEST5)
+#if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
 /** @brief Sample-rate for examples that are relatively computationally lightweight */
 #define AUDIO_SAMPLE_RATE 			(48000)
 #elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT)
 /** @brief Sample-rate for examples that are relatively computationally heavy */
 #define AUDIO_SAMPLE_RATE			(24000)
-#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM)
+#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM)  || defined(SYSMODE_TEST5)
 /** @brief For test 4, the sample rate must be a power of two in order to
  * generate a sinusoid that perfectly fits in AUDIO_BLOCKTIME. For the LMS and 
 OFDM labs lots of computational time is needed and we don't have any real sample 
-rate requirements. */
+rate requirements. For test 5 a low sample-rate is good as the high-pass filter
+has a fairly low relative cutoff frequency */
 #define AUDIO_SAMPLE_RATE			(16000)
 #else
 #error Invalid system mode selected

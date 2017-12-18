@@ -22,7 +22,7 @@ void example_test3(void);
 void example_test4_init(void);
 void example_test4(void);
 void example_test4_btnpress(void);	//!<- Function to call to trigger a transmission
-#elif defined(SYSMODE_TEST4)
+#elif defined(SYSMODE_TEST5)
 // Function pair for the time-domain frequency shift example
 void example_test5_init(void);
 void example_test5(void);
