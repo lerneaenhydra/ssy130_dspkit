@@ -29,10 +29,10 @@
  * receiver on the microphone input, displaying received characters on the
  * terminal.
  * SYSMODE_TEST5; will compile the project to apply a frequency shift to the
- * microphone input by multiplying the recieved signal with a sinusoid.
- * The frequency-shifted output is played back to the left speaker, the right
- * speaker plays back the microphone data directly. Test bringing either speaker
- * close to the microphone, you'll see that only one gives rise to a feedback loop!
+ * a signal souce by multiplying the recieved signal with a sinusoid.
+ * The frequency-shifted output is played back to the left speaker.
+ * The frequency shift amount, waveform source, and choice of upper, lower, or 
+ * both sidebands can be selected during runtime.
  * SYSMODE_RADAR; will compile the project for a pulse radar (i.e.
  * time-of-flight) distance-measurement example.
  * (See https://en.wikipedia.org/wiki/Radar#Transit_time)
