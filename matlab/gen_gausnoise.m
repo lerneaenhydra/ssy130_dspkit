@@ -10,12 +10,19 @@ X = zeros(256,1);
 X(2:end/4) = 1;
 x = real(ifft(X));
 
-sig = x/max(x);	%Normalize amplitude
+fs = 16e3;
 
-plot(abs(fft(sig)));
-title('FT of resultant signal');
-xlabel('FFT index');
-ylabel('Magnitude');
+f = linspace(0,fs,length(x));
+
+sig = x/max(abs(x));	%Normalize amplitude
+
+plot(f, abs(fft(sig)));
+title('Fourier transform of broadband disturbance');
+ylabel('Magnitude [-]');
+xlabel('Frequency [Hz]');
+
+print('noise_ft.eps','-depsc');
+
 
 sound(repmat(sig(:), 50, 1), 16000);
 
