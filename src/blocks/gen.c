@@ -1,5 +1,6 @@
 #include "gen.h"
 #include <string.h>
+#include <math.h>
 #include "arm_math.h"
 #include "config.h"
 #include "str_table.h"
@@ -25,6 +26,18 @@ void blocks_gen_cos(float frequency, float phase, float * dest, int_fast32_t len
 		ang += delta_ang;
 		if(ang > M_TWOPI){
 			ang -= M_TWOPI;
+		}
+	}
+}
+
+void blocks_gen_sinc(float norm_freq, float * dest, size_t len){
+	size_t i;
+	for(i = 0; i < len; i++){
+		float x = (i + 0.5f) - ((float) len) / 2;
+		if(x == 0){
+			dest[i] = 1.0f;
+		}else{
+			dest[i] = arm_sin_f32(M_TWOPI * norm_freq * x) / (M_TWOPI * norm_freq * x);
 		}
 	}
 }

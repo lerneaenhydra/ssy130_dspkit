@@ -6,6 +6,7 @@
 #define GEN_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 /** @brief Writes a vector of sinusoidal data with configurable frequency and phase.
  * @param frequency The desired frequency
@@ -20,6 +21,13 @@ void blocks_gen_sin(float frequency, float phase, float * dest, int_fast32_t len
  * @param dest Destination to write to
  * @param len The number of elements in dest */
 void blocks_gen_cos(float frequency, float phase, float * dest, int_fast32_t len);
+
+/** @brief Generates a time-shifted sinc function at some normalized frequency
+ * Dest will essentially become:
+ * sin(2*pi*norm_freq*k)/(pi*k)
+ * where k covers range +/- len/2
+ */
+void blocks_gen_sinc(float norm_freq, float * dest, size_t len);
 
 /** @brief Generates a random (human-readable) string with up to strlen non-null elements
  * @param str Pointer to char array to write result to
