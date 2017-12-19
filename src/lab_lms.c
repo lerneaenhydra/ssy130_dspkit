@@ -11,8 +11,9 @@
 /** @brief Relative change in mu on increase/decrease events */
 #define		LAB_LMS_MU_CHANGE		(1.2f)
 
-/** @brief Number of filter taps to use for on-line LMS operation */
-#define		LAB_LMS_TAPS_ONLINE		(128)
+/** @brief Maximual number of filter taps to use for on-line LMS operation */
+#define		LAB_LMS_TAPS_ONLINE_MAX	(512)
+
 
 /** @brief Length of stored lms filter error log [s]
  * The first error output from the LMS filter will be saved on every LMS call
@@ -26,14 +27,20 @@
  * This also reduces the computational burden (yay!) */
 #define 	LAB_LMS_CGN_FAC			(4)
 
+/** @brief Number of AUDIO_BLOCKSIZE blocks that the I/O buffers increase the
+ * round-trip latency by */
+#define		LAB_LMS_IOBUF_LATENCY_BLKS	(4)
+
 // Stateful variables for the LMS lab
-float lms_coeffs[LAB_LMS_TAPS_ONLINE];
-float lms_state[LAB_LMS_TAPS_ONLINE + AUDIO_BLOCKSIZE - 1];
+float lms_coeffs[LAB_LMS_TAPS_ONLINE_MAX];
+float lms_state[LAB_LMS_TAPS_ONLINE_MAX + AUDIO_BLOCKSIZE - 1];
 float lms_err_buf[LAB_LMS_ERRLOG_LEN_s * AUDIO_SAMPLE_RATE / AUDIO_BLOCKSIZE];
+float lms_distbuf[LAB_LMS_IOBUF_LATENCY_BLKS*AUDIO_BLOCKSIZE];
 size_t lms_err_buf_idx;
 float lms_err_buf_time;
 float lms_mu = LAB_LMS_MU_INIT;
-uint_fast32_t seed;	//PRNG seed for gaussian noise generator
+uint_fast32_t seed;			//PRNG seed for gaussian noise generator
+size_t n_lms_taps = 128;	//Number of LMS taps to use right now
 
 // enum type for different modes of operation
 enum lms_modes {lms_updt, lms_enbl, lms_dsbl} lms_mode;
@@ -57,6 +64,8 @@ static void lab_lms_reset_errlog(void){
 			"\t'r' - Reset filter coefficients to 0 and empty logged error output\n"									\
 			"\t'1' - Increase step size mu\n"																			\
 			"\t'2' - Decrease step size mu\n"																			\
+			"\t'3' - Increase number of used LMS taps (maximum " xstr(LAB_LMS_TAPS_ONLINE_MAX) ")\n"					\
+			"\t'4' - Decrease number of used LMS taps (minimum 1, unused taps set to zero)\n"							\
 			"\t'm' - Prints the filter coefficients h in a format useful for import in Matlab\n"						\
 			"\t'h' - Plots the current filter coefficients directly in the terminal\n"									\
 			"\t'e' - Plots the most recent " xstr(LAB_LMS_ERRLOG_LEN_s) " seconds of the LMS filter error output\n"		\
@@ -66,6 +75,7 @@ void lab_lms_init(void){
 	//Manually initialize the LMS filter coefficients and state to all zeros
 	arm_fill_f32(0.0f, lms_coeffs, NUMEL(lms_coeffs));
 	arm_fill_f32(0.0f, lms_state, NUMEL(lms_state));
+	arm_fill_f32(0.0f, lms_distbuf, NUMEL(lms_distbuf));
 	lab_lms_reset_errlog();
 	blocks_sources_trig_setfreq(LAB_LMS_SINE_TONE_HZ);
 	lms_mode = lms_dsbl; // start with disabled mode
@@ -110,6 +120,32 @@ void lab_lms(void){
 			lms_mu *= 1.0f/LAB_LMS_MU_CHANGE;
 			printf("Step size mu decreased to %e\n", lms_mu);
 			break;
+		case '3':
+			if(n_lms_taps < LAB_LMS_TAPS_ONLINE_MAX){
+				n_lms_taps++;
+				//Preserve n_lms_taps coefficients by shuffling them all up one index
+				size_t i;
+				for(i = n_lms_taps; i; i--){
+					lms_coeffs[i] = lms_coeffs[i-1];
+				}
+				//Initialize newly added coefficient
+				lms_coeffs[0] = 0.0f;
+			}
+			printf("Using %d taps for LMS filter (unused taps set to zero)\n", n_lms_taps);
+			break;
+		case '4':
+			if(n_lms_taps > 1){
+				n_lms_taps--;
+				//Preserve n_lms_taps coefficients by shuffling them all down one index
+				size_t i;
+				for(i = 0; i < n_lms_taps; i++){
+					lms_coeffs[i] = lms_coeffs[i+1];
+				}
+				//Clear now unused tap value
+				lms_coeffs[n_lms_taps] = 0.0f;
+			}
+			printf("Using %d taps for LMS filter (unused taps set to zero)\n", n_lms_taps);
+			break;
 		case 't':
 			if (dist_src == cos_src){
 				dist_src = noise_src;
@@ -121,15 +157,15 @@ void lab_lms(void){
 			break;
 		case 'm':
 			printf("Filter coefficients in reversed order (use e.g. 'flipud(h)' in Matlab to restore actual order)\n");
-			print_vector_f("h_reversedOrder", lms_coeffs, NUMEL(lms_coeffs));
+			print_vector_f("h_reversedOrder", lms_coeffs, n_lms_taps);
 			break;
 		case 'h':
 			{
-				float h_hat[NUMEL(lms_coeffs)];
+				float h_hat[n_lms_taps];
 				//Generate h_hat by reversing lms_coeffs
 				int i;
-				for(i = 0; i < NUMEL(h_hat); i++){
-					h_hat[i] = lms_coeffs[NUMEL(lms_coeffs) - 1 - i];
+				for(i = 0; i < n_lms_taps; i++){
+					h_hat[i] = lms_coeffs[n_lms_taps - 1 - i];
 				}
 				char plottitle[] = "Current estimated channel coefficients (equivalent to 'plot(flipud(h))' in Matlab)";
 				float axisdummy[] = {NAN, NAN, NAN, NAN};	//Auto-scale plot extents
@@ -207,8 +243,19 @@ void lab_lms(void){
 	
 	// Load desired disturbance signal
 	if (dist_src == noise_src){
-		//Get wide-band disturbance samples
-		blocks_sources_disturbance(distdata);
+		//Generate colored gaussian noise by low-pass filtering white guassian noise
+		
+		/* As it's expensive to generate gaussian samples and we want a
+		 * low-passed gaussian process, simply create a gaussian process at
+		 * low sample rate and apply ZOH to up-sample to the globak sample rate */
+		float rawdist[AUDIO_BLOCKSIZE/LAB_LMS_CGN_FAC];
+		util_randN(0, 0.5, &seed, rawdist, NUMEL(rawdist));
+
+		//Upsample to the global sample rate
+		size_t i;
+		for(i = 0; i < NUMEL(rawdist); i++){
+			arm_fill_f32(rawdist[i], &distdata[i*LAB_LMS_CGN_FAC], LAB_LMS_CGN_FAC);
+		}
 	} else { // cosine as disturbance
 		blocks_sources_cos(distdata);
 	};
@@ -249,8 +296,26 @@ void lab_lms(void){
 			break;
 	}
 
+	/* As LMS filter is limited in length (shorter than the I/O buffers)
+	 * make life easier by buffering the disturbance data for as long as the
+	 * I/O buffers. We'll still have propogration delay in the channel and
+	 * microphone downsampling filter, but this is much more modest than the
+	 * LAB_LMS_IOBUF_LATENCY_BLKS*AUDIO_BLOCKSIZE elements in the I/O filters.
+	 * Store data in the buffer here oldest-element first. */
+
+	//First shuffle old data around
+	{
+		size_t i;
+		for(i = 0; i < LAB_LMS_IOBUF_LATENCY_BLKS - 1; i++){
+			arm_copy_f32(&lms_distbuf[(i + 1) * AUDIO_BLOCKSIZE], &lms_distbuf[i * AUDIO_BLOCKSIZE], AUDIO_BLOCKSIZE);
+		}
+	}
+
+	//Finally add the newest data to the buffer
+	arm_copy_f32(distdata, &lms_distbuf[NUMEL(lms_distbuf) - AUDIO_BLOCKSIZE], NUMEL(distdata));
+
 	if(do_lms){
-		my_lms(distdata, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, net_mu, lms_coeffs, lms_state, LAB_LMS_TAPS_ONLINE);
+		my_lms(lms_distbuf, lms_mic, lms_output, lms_err, AUDIO_BLOCKSIZE, net_mu, lms_coeffs, lms_state, n_lms_taps);
 		
 		blocks_sinks_leftout(lms_err); // Send cleaned signal to left channel
 		

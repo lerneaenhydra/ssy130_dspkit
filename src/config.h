@@ -105,10 +105,10 @@
 #if defined(SYSMODE_TEST1) || defined(SYSMODE_TEST2)
 /** @brief Sample-rate for examples that are relatively computationally lightweight */
 #define AUDIO_SAMPLE_RATE 			(48000)
-#elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT) || defined(SYSMODE_TEST5)
+#elif defined(SYSMODE_TEST3) || defined(SYSMODE_FFT)
 /** @brief Sample-rate for examples that are relatively computationally heavy */
 #define AUDIO_SAMPLE_RATE			(24000)
-#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM)
+#elif defined(SYSMODE_TEST4) || defined(SYSMODE_RADAR) || defined(SYSMODE_LMS) || defined(SYSMODE_OFDM) || defined(SYSMODE_TEST5)
 /** @brief For test 4, the sample rate must be a power of two in order to
  * generate a sinusoid that perfectly fits in AUDIO_BLOCKTIME. For the LMS and 
 OFDM labs lots of computational time is needed and we don't have any real sample 
@@ -146,7 +146,7 @@ rate requirements. */
 #define AUDIO_BLOCKSIZE				(256)
 #elif defined(SYSMODE_LMS)
 /** @brief Select a slightly larger blocksize for the LMS lab to have time for generating plots */
-#define AUDIO_BLOCKSIZE				(512)
+#define AUDIO_BLOCKSIZE				(1024)
 #elif defined(SYSMODE_OFDM) || defined(SYSMODE_TEST5)
 /** @brief Arbitrarily select a large block size as this gives us a longer time
  * to perform signal processing calculations before the microphone/output DMA

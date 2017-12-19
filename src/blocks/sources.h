@@ -10,12 +10,11 @@ void blocks_sources_init(void);
  * To be called by the backend subsystem only. */
 void blocks_sources_update(void);
 
-/** @brief Writes the AUDIO_BLOCKSIZE oldest disturbance/y/x samples to sample_block.
+/** @brief Writes the AUDIO_BLOCKSIZE oldest y/x samples to sample_block.
  * Here, the ..._x and ..._y functions are related by Y(s) = X(s)*H(s), where h(n)
  * can be requested using the ..._get_h_... functions.
  * @param sample_block Pointer to array of AUDIO_BLOCKSIZE floats to write
  * oldest disturbance/x/y samples to. */
-void blocks_sources_disturbance(float * sample_block);
 void blocks_sources_test_y(float * sample_block);
 void blocks_sources_test_x(float * sample_block);
 
