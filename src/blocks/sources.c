@@ -12,6 +12,7 @@
 #include "waveform4.h"
 #include "waveform5.h"
 #include "waveform6.h"
+#include "waveform7.h"
 #include "waveform_theonlysolution.h"
 #include "waveform_jul.h"
 

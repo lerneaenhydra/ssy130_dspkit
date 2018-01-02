@@ -84,9 +84,9 @@
  * Permissible values are of the format 'AUDIO_WAVEFORM_WAVEFORMx', where x may
  * be an integer that matches any of the files located in
  * /src/blocks/waveformx.h. For example, if there exists files waveform1.h/.c
- * through waveform6.h/.c, then AUDIO_WAVEFORM_WAVEFORM1 through 
- * AUDIO_WAVEFORM_WAVEFORM6 are permissibile */
-#define AUDIO_WAVEFORM_WAVEFORM1
+ * through waveform7.h/.c, then AUDIO_WAVEFORM_WAVEFORM1 through 
+ * AUDIO_WAVEFORM_WAVEFORM7 are permissibile */
+#define AUDIO_WAVEFORM_WAVEFORM7
 
 /** @brief Define this directive to include the assignment solutions. The
  * student code-base does not have the needed file and will generate a compiler
