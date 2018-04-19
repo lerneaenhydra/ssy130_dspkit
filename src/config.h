@@ -86,7 +86,7 @@
  * /src/blocks/waveformx.h. For example, if there exists files waveform1.h/.c
  * through waveform7.h/.c, then AUDIO_WAVEFORM_WAVEFORM1 through 
  * AUDIO_WAVEFORM_WAVEFORM7 are permissibile */
-#define AUDIO_WAVEFORM_WAVEFORM7
+#define AUDIO_WAVEFORM_WAVEFORM1
 
 /** @brief Define this directive to include the assignment solutions. The
  * student code-base does not have the needed file and will generate a compiler
