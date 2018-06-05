@@ -1,9 +1,0 @@
-.pioenvs/
-.vscode/
-.pioenvs
-.piolibdeps
-.vscode/c_cpp_properties.json
-.travis.yml
-.vscode/.browse.c_cpp.db*
-.vscode/launch.json
-.directory
